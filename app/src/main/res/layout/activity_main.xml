@@ -84,6 +84,60 @@
             android:layout_marginTop="8dp"
             android:text="@string/choose_video" />
 
+        <!-- Playlist: adicionar música pelo número (fila FIFO) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/step4_title"
+            android:textStyle="bold"
+            android:layout_marginTop="28dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/step4_subtitle"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editSongNumber"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/song_number_hint"
+                android:inputType="number"
+                android:maxLines="1"
+                android:imeOptions="actionDone" />
+
+            <Button
+                android:id="@+id/btnAddToPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/add_to_playlist" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPlaylistStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnOpenPlaylist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/view_playlist" />
+
     </LinearLayout>
 
 </ScrollView>

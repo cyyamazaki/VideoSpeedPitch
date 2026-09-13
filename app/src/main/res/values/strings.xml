@@ -1,29 +1,58 @@
 <resources>
     <string name="app_name">Video Speed Pitch</string>
     <string name="choose_video">Escolher vídeo avulso (arquivo)</string>
-    <string name="speed_label">Velocidade: %.2fx</string>
-    <string name="pitch_label">Tom: %.2fx</string>
     <string name="reset">Redefinir</string>
+
+    <!-- PlayerActivity: velocidade e tom (botões de seleção) -->
+    <string name="speed_title">Velocidade</string>
+    <string name="speed_90">90%</string>
+    <string name="speed_95">95%</string>
+    <string name="speed_100">100%</string>
+
+    <string name="pitch_title">Tom (pitch)</string>
+    <string name="pitch_90">90%</string>
+    <string name="pitch_95">95%</string>
+    <string name="pitch_100">100%</string>
+    <string name="pitch_105">105%</string>
+    <string name="pitch_110">110%</string>
 
     <!-- Hub / MainActivity -->
     <string name="step1_title">1. Pasta onde estão os vídeos</string>
     <string name="step2_title">2. Escolha o catálogo</string>
     <string name="step2_subtitle">Cada catálogo é pesquisado separadamente, nunca junto com o outro.</string>
     <string name="step3_title">Ou, se preferir</string>
+    <string name="step4_title">Playlist (fila de reprodução)</string>
+    <string name="step4_subtitle">Digite o número (código) da música e adicione à fila. Elas tocam automaticamente uma após a outra, na ordem em que foram adicionadas.</string>
     <string name="select_folder">Selecionar pasta de vídeos</string>
     <string name="folder_selected_ok">Pasta de vídeos selecionada com sucesso.</string>
     <string name="folder_selected_status">Pasta selecionada: %s</string>
     <string name="folder_not_selected_status">Nenhuma pasta selecionada ainda. Os vídeos dos catálogos precisam estar em uma pasta local, nomeados com o código da música (ex.: 18483.mp4).</string>
+    <string name="idle_random_video_title">Reprodução automática</string>
 
     <!-- Catálogos -->
     <string name="catalog_karaoke_title">Catálogo Karaokê</string>
     <string name="catalog_japones_title">Catálogo Japonês</string>
-    <string name="search_hint">Buscar por cantor/intérprete ou música…</string>
-    <string name="catalog_hint_min_chars">Digite pelo menos %d letras para buscar.</string>
+    <string name="search_hint">Buscar por cantor/intérprete, música ou número…</string>
+    <string name="search_action">Buscar</string>
+    <string name="catalog_hint_min_chars">Digite pelo menos %d letras e pressione Enter/Buscar.</string>
     <string name="catalog_no_results">Nenhuma música encontrada.</string>
     <string name="song_subtitle_format">%1$s · código %2$s</string>
+
+    <!-- Playlist (fila FIFO) -->
+    <string name="song_number_hint">Número da música</string>
+    <string name="add_to_playlist">Adicionar</string>
+    <string name="view_playlist">Ver / tocar playlist</string>
+    <string name="playlist_status">Playlist: %d música(s) na fila</string>
+    <string name="playlist_empty">A playlist está vazia.</string>
+    <string name="play_playlist">Tocar playlist</string>
+    <string name="clear_playlist">Limpar playlist</string>
+    <string name="playlist_finished">Playlist concluída.</string>
+    <string name="next_song_warning">"%1$s" — %2$s (nº %3$s) começa em 5 segundos.</string>
+    <string name="remove">Remover</string>
+    <string name="song_added_to_playlist">\"%s\" adicionada à playlist.</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
     <string name="error_video_not_found">Não foi encontrado nenhum arquivo de vídeo com o código %s na pasta selecionada.</string>
+    <string name="error_song_number_not_found">Nenhuma música encontrada com o número %s.</string>
 </resources>

@@ -15,6 +15,9 @@ import java.text.Normalizer
  */
 object CatalogRepository {
 
+    /** Nomes dos catálogos empacotados em assets/, usados na busca global por código. */
+    val CATALOG_ASSETS = listOf("catalogo_karaoke.json", "catalogo_japones.json")
+
     /** Lê um catálogo de assets/<assetFileName> e retorna a lista de músicas. */
     fun loadCatalog(context: Context, assetFileName: String): List<Song> {
         val json = context.assets.open(assetFileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -39,6 +42,20 @@ object CatalogRepository {
         val noAccents = Normalizer.normalize(text, Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")
         return noAccents.lowercase()
+    }
+
+    /**
+     * Procura uma música pelo código exato em todos os catálogos (karaokê e
+     * japonês), nessa ordem, retornando a primeira ocorrência encontrada.
+     * Usado pela playlist global, que não depende de qual catálogo a música
+     * pertence.
+     */
+    fun findSongByCodigo(context: Context, codigo: String): Song? {
+        for (assetName in CATALOG_ASSETS) {
+            val song = loadCatalog(context, assetName).firstOrNull { it.codigo == codigo }
+            if (song != null) return song
+        }
+        return null
     }
 
     /**

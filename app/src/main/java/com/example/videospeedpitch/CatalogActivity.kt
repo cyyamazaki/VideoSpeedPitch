@@ -3,8 +3,8 @@ package com.example.videospeedpitch
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -14,10 +14,12 @@ import androidx.recyclerview.widget.RecyclerView
 
 /**
  * Tela de busca dentro de UM catálogo (karaokê OU japonês — nunca os dois
- * ao mesmo tempo). O usuário digita o nome do cantor/intérprete ou da
- * música, escolhe um item da lista e, se a pasta de vídeos já tiver sido
- * selecionada, o app localiza o arquivo cujo nome é o código da música e
- * abre o player.
+ * ao mesmo tempo). O usuário digita o nome do cantor/intérprete, da música
+ * ou o número (código) e pressiona Enter/Buscar para atualizar a lista —
+ * a lista não é recalculada a cada tecla digitada, evitando lentidão em
+ * catálogos grandes. Ao escolher um item, se a pasta de vídeos já tiver
+ * sido selecionada, o app localiza o arquivo cujo nome é o código da
+ * música e abre o player.
  */
 class CatalogActivity : AppCompatActivity() {
 
@@ -30,6 +32,7 @@ class CatalogActivity : AppCompatActivity() {
     private lateinit var allSongs: List<Song>
     private lateinit var adapter: SongAdapter
     private lateinit var tvEmptyState: TextView
+    private lateinit var editSearch: EditText
 
     // Índice (código -> Uri) da pasta de vídeos, construído sob demanda.
     private var fileIndex: Map<String, Uri>? = null
@@ -44,7 +47,7 @@ class CatalogActivity : AppCompatActivity() {
         allSongs = CatalogRepository.loadCatalog(this, assetName)
 
         val recyclerView: RecyclerView = findViewById(R.id.recyclerViewSongs)
-        val editSearch: EditText = findViewById(R.id.editSearch)
+        editSearch = findViewById(R.id.editSearch)
         tvEmptyState = findViewById(R.id.tvEmptyState)
 
         adapter = SongAdapter { song -> onSongSelected(song) }
@@ -53,33 +56,46 @@ class CatalogActivity : AppCompatActivity() {
 
         updateEmptyState(query = "")
 
-        editSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                filter(s?.toString().orEmpty())
+        // A lista só é atualizada quando o usuário confirma a busca
+        // (Enter/ação de busca do teclado), não a cada tecla digitada.
+        editSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                filter(editSearch.text?.toString().orEmpty())
+                true
+            } else {
+                false
             }
-        })
+        }
+        editSearch.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
+                filter(editSearch.text?.toString().orEmpty())
+                true
+            } else {
+                false
+            }
+        }
     }
 
     private fun filter(rawQuery: String) {
-        if (rawQuery.trim().length < MIN_QUERY_LENGTH) {
+        val trimmed = rawQuery.trim()
+        if (trimmed.length < MIN_QUERY_LENGTH) {
             adapter.submitList(emptyList())
-            updateEmptyState(rawQuery)
+            updateEmptyState(trimmed)
             return
         }
-        val query = CatalogRepository.normalize(rawQuery.trim())
+        val query = CatalogRepository.normalize(trimmed)
         val filtered = allSongs.filter { song ->
             CatalogRepository.normalize(song.artista).contains(query) ||
-                CatalogRepository.normalize(song.musica).contains(query)
+                CatalogRepository.normalize(song.musica).contains(query) ||
+                song.codigo.contains(trimmed)
         }
         adapter.submitList(filtered)
-        updateEmptyState(rawQuery, resultCount = filtered.size)
+        updateEmptyState(trimmed, resultCount = filtered.size)
     }
 
     private fun updateEmptyState(query: String, resultCount: Int = -1) {
         tvEmptyState.text = when {
-            query.trim().length < MIN_QUERY_LENGTH ->
+            query.length < MIN_QUERY_LENGTH ->
                 getString(R.string.catalog_hint_min_chars, MIN_QUERY_LENGTH)
             resultCount == 0 -> getString(R.string.catalog_no_results)
             else -> ""

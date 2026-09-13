@@ -14,45 +14,187 @@
         app:use_controller="true"
         app:show_buffering="when_playing" />
 
+    <!-- Painel de controles compacto: fica oculto por padrão para o vídeo
+         ocupar o máximo de espaço possível (sem perder a proporção, já que
+         o PlayerView continua com layout_weight="1" e ajusta a área do
+         vídeo por conta própria). Só aparece ao tocar a tela, mover o
+         mouse ou digitar — ver PlayerActivity. -->
     <LinearLayout
+        android:id="@+id/controlsPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="#FFFFFF"
-        android:padding="16dp">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone">
 
-        <TextView
-            android:id="@+id/tvSpeed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <SeekBar
-            android:id="@+id/seekSpeed"
+        <!-- Adicionar música à playlist pelo número, sem sair do vídeo -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/tvPitch"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
 
-        <SeekBar
-            android:id="@+id/seekPitch"
+            <EditText
+                android:id="@+id/editPlayerSongNumber"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:hint="@string/song_number_hint"
+                android:inputType="number"
+                android:maxLines="1"
+                android:textSize="12sp"
+                android:imeOptions="actionDone" />
+
+            <Button
+                android:id="@+id/btnPlayerAddToPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="2dp"
+                android:textSize="12sp"
+                android:text="@string/add_to_playlist" />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="@string/speed_title"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupSpeed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioSpeed90"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/speed_90" />
+
+                <RadioButton
+                    android:id="@+id/radioSpeed95"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/speed_95" />
+
+                <RadioButton
+                    android:id="@+id/radioSpeed100"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:checked="true"
+                    android:text="@string/speed_100" />
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="@string/pitch_title"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/radioGroupPitch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioPitch90"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/pitch_90" />
+
+                <RadioButton
+                    android:id="@+id/radioPitch95"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/pitch_95" />
+
+                <RadioButton
+                    android:id="@+id/radioPitch100"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:checked="true"
+                    android:text="@string/pitch_100" />
+
+                <RadioButton
+                    android:id="@+id/radioPitch105"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/pitch_105" />
+
+                <RadioButton
+                    android:id="@+id/radioPitch110"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="0dp"
+                    android:textSize="12sp"
+                    android:text="@string/pitch_110" />
+
+            </RadioGroup>
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnReset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:layout_gravity="end"
+            android:minHeight="0dp"
+            android:paddingVertical="2dp"
+            android:textSize="12sp"
             android:text="@string/reset"
             style="?attr/borderlessButtonStyle" />
 

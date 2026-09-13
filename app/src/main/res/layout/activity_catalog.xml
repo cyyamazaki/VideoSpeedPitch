@@ -12,7 +12,8 @@
         android:hint="@string/search_hint"
         android:inputType="text"
         android:maxLines="1"
-        android:imeOptions="actionSearch" />
+        android:imeOptions="actionSearch"
+        android:imeActionLabel="@string/search_action" />
 
     <TextView
         android:id="@+id/tvEmptyState"
