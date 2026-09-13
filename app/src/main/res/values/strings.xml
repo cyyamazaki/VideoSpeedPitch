@@ -32,6 +32,7 @@
     <string name="search_hint">Buscar por cantor/intérprete, música ou número…</string>
     <string name="search_action">Buscar</string>
     <string name="catalog_no_results">Nenhuma música encontrada.</string>
+    <string name="search_youtube_for_query">🔎 Buscar \"%s\" no YouTube</string>
     <string name="song_subtitle_format">%1$s · código %2$s</string>
     <string name="sort_by_label">Ordenar por:</string>
     <string name="sort_by_cantor">Cantor</string>
@@ -68,12 +69,17 @@
     <string name="refresh_catalogs_button">Atualizar catálogos (vídeos disponíveis)</string>
     <string name="catalogs_refreshed_toast">Catálogos atualizados: %d vídeo(s) disponível(is) na pasta.</string>
     <string name="youtube_search_icon">🔎</string>
+    <string name="queue_from_catalog_icon">📖</string>
+    <string name="queue_from_catalog_armed">Ativado: ao terminar, você escolherá a próxima música no catálogo.</string>
+    <string name="queue_from_catalog_disarmed">Cancelado: o vídeo seguirá o comportamento normal ao terminar.</string>
+    <string name="catalog_queue_mode_banner">Escolha a próxima música da playlist</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
     <string name="error_video_not_found">Vídeo não encontrado para \"%1$s\" — %2$s (nº %3$s).</string>
     <string name="error_song_number_not_found">Nenhuma música encontrada com o número %s.</string>
     <string name="youtube_not_found">Vídeo não encontrado no YouTube para \"%1$s\" — %2$s.</string>
+    <string name="youtube_not_found_query">Karaokê não encontrado no YouTube para \"%s\".</string>
     <string name="error_song_info_unavailable">Não foi possível identificar a música atual.</string>
 
     <!-- Sobre / histórico -->
@@ -83,6 +89,8 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Na busca de um catálogo sem resultados, um botão permite buscar um karaokê da música (pelo cantor e nome digitados) diretamente no YouTube.</item>
+        <item>Botão discreto (📖) no vídeo do player: ao ativar, quando o vídeo terminar o app abre o último catálogo usado para você escolher a próxima música da playlist, que já entra na fila e começa a tocar em seguida.</item>
         <item>O vídeo aleatório da tela inicial também retoma exatamente de onde parou (posição e se estava tocando/pausado) ao voltar de outra tela ou de sair do app sem fechá-lo, em vez de sempre sortear um vídeo novo.</item>
         <item>Botão discreto (🔎) no vídeo do player e no vídeo aleatório da tela inicial para buscar a música atual no YouTube: abre o primeiro resultado encontrado, ou avisa por toast se não achar.</item>
         <item>Barra de rolagem rápida na lista dos catálogos: arraste na borda direita para pular direto para qualquer ponto da lista, com uma bolha mostrando a letra inicial da posição atual.</item>

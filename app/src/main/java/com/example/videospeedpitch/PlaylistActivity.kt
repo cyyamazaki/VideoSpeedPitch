@@ -1,7 +1,5 @@
 package com.example.videospeedpitch
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -57,42 +55,11 @@ class PlaylistActivity : AppCompatActivity() {
     }
 
     private fun playFromQueue() {
-        val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
-            .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
-        if (treeUriString == null) {
-            Toast.makeText(this, R.string.error_no_folder_selected, Toast.LENGTH_LONG).show()
-            return
-        }
         if (PlaylistManager.isEmpty()) {
             Toast.makeText(this, R.string.playlist_empty, Toast.LENGTH_SHORT).show()
             return
         }
-
-        val treeUri = Uri.parse(treeUriString)
-        val index = CatalogRepository.getFileIndex(this, treeUri)
-
-        // Descarta, do início da fila, códigos sem arquivo correspondente.
-        var firstSong = PlaylistManager.peekAll().firstOrNull()
-        while (firstSong != null && !index.containsKey(firstSong.codigo)) {
-            PlaylistManager.dequeue()
-            Toast.makeText(
-                this,
-                getString(R.string.error_video_not_found, firstSong.musica, firstSong.artista, firstSong.codigo),
-                Toast.LENGTH_SHORT
-            ).show()
-            firstSong = PlaylistManager.peekAll().firstOrNull()
-        }
+        PlaylistPlayer.playNextFromQueue(this)
         refresh()
-
-        if (firstSong == null) return
-        val videoUri = index[firstSong.codigo] ?: return
-        PlaylistManager.dequeue()
-        refresh()
-
-        val playerIntent = Intent(this, PlayerActivity::class.java)
-        playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
-        PlayerActivity.putSongExtras(playerIntent, firstSong)
-        playerIntent.putExtra(PlayerActivity.EXTRA_PLAYLIST_MODE, true)
-        startActivity(playerIntent)
     }
 }

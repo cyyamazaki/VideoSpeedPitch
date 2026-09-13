@@ -16,9 +16,15 @@ import java.net.URL
  * (no app do YouTube, se instalado, ou no navegador); se não achar — ou a
  * busca falhar por qualquer motivo (sem internet, etc.) —, avisa por toast.
  *
+ * Duas variações de busca, para dois contextos diferentes:
+ *  - [searchAndOpen]: música que está tocando (localmente, o karaokê sem
+ *    voz) — busca a versão cantada, com letra ("lyrics").
+ *  - [searchKaraokeAndOpen]: música digitada na busca de um catálogo que
+ *    não teve resultado — busca um karaokê dela no YouTube como alternativa.
+ *
  * A requisição roda em uma thread separada; o resultado é aplicado na UI via
- * [Handler], então esta função pode ser chamada diretamente do clique de um
- * botão, em qualquer Activity.
+ * [Handler], então estas funções podem ser chamadas diretamente do clique
+ * de um botão, em qualquer Activity.
  */
 object YouTubeSearchHelper {
 
@@ -29,27 +35,41 @@ object YouTubeSearchHelper {
     private val videoIdRegex = Regex("\"videoId\":\"([a-zA-Z0-9_-]{11})\"")
     private val handler = Handler(Looper.getMainLooper())
 
+    /**
+     * Busca "<cantor> <música> lyrics" — usada para o vídeo que está
+     * tocando (que localmente é o karaokê, sem voz); o "lyrics" busca a
+     * versão cantada, com letra, em vez de outro karaokê/instrumental.
+     */
     fun searchAndOpen(context: Context, song: Song) {
-        val appContext = context.applicationContext
-        val query = "${song.artista} ${song.musica}"
+        val notFoundMessage = context.getString(R.string.youtube_not_found, song.musica, song.artista)
+        search(context, "${song.artista} ${song.musica} lyrics", notFoundMessage)
+    }
 
+    /**
+     * Busca "<consulta> karaokê" — usada quando a música procurada (por
+     * cantor e nome digitados na busca) não foi encontrada em nenhum
+     * catálogo, como alternativa para achar um karaokê dela no YouTube.
+     */
+    fun searchKaraokeAndOpen(context: Context, query: String) {
+        val notFoundMessage = context.getString(R.string.youtube_not_found_query, query)
+        search(context, "$query karaokê", notFoundMessage)
+    }
+
+    private fun search(context: Context, query: String, notFoundMessage: String) {
+        val appContext = context.applicationContext
         Thread {
             val videoId = try {
                 fetchFirstVideoId(query)
             } catch (e: Exception) {
                 null
             }
-            handler.post { onResult(appContext, song, videoId) }
+            handler.post { onResult(appContext, videoId, notFoundMessage) }
         }.start()
     }
 
-    private fun onResult(context: Context, song: Song, videoId: String?) {
+    private fun onResult(context: Context, videoId: String?, notFoundMessage: String) {
         if (videoId == null) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.youtube_not_found, song.musica, song.artista),
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(context, notFoundMessage, Toast.LENGTH_LONG).show()
             return
         }
 

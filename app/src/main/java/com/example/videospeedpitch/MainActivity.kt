@@ -279,6 +279,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openCatalog(assetName: String, title: String) {
+        // Lembrado para reabrir o mesmo catálogo quando o vídeo terminar,
+        // caso o usuário tenha ativado "escolher a próxima da playlist"
+        // (ver PlayerActivity.btnQueueFromCatalog).
+        getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
+            .edit()
+            .putString(Prefs.KEY_LAST_CATALOG_ASSET, assetName)
+            .putString(Prefs.KEY_LAST_CATALOG_TITLE, title)
+            .apply()
+
         val intent = Intent(this, CatalogActivity::class.java)
         intent.putExtra(CatalogActivity.EXTRA_ASSET_NAME, assetName)
         intent.putExtra(CatalogActivity.EXTRA_TITLE, title)
@@ -326,40 +335,8 @@ class MainActivity : AppCompatActivity() {
      * tela de playlist, entrando em modo playlist a partir daí.
      */
     private fun playFirstFromPlaylist() {
-        val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
-            .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
-        if (treeUriString == null) {
-            Toast.makeText(this, R.string.error_no_folder_selected, Toast.LENGTH_LONG).show()
-            updatePlaylistStatus()
-            return
-        }
-
-        val treeUri = Uri.parse(treeUriString)
-        val index = CatalogRepository.getFileIndex(this, treeUri)
-
-        // Descarta, do início da fila, códigos sem arquivo correspondente.
-        var firstSong = PlaylistManager.peekAll().firstOrNull()
-        while (firstSong != null && !index.containsKey(firstSong.codigo)) {
-            PlaylistManager.dequeue()
-            Toast.makeText(
-                this,
-                getString(R.string.error_video_not_found, firstSong.musica, firstSong.artista, firstSong.codigo),
-                Toast.LENGTH_SHORT
-            ).show()
-            firstSong = PlaylistManager.peekAll().firstOrNull()
-        }
+        PlaylistPlayer.playNextFromQueue(this)
         updatePlaylistStatus()
-
-        if (firstSong == null) return
-        val videoUri = index[firstSong.codigo] ?: return
-        PlaylistManager.dequeue()
-        updatePlaylistStatus()
-
-        val playerIntent = Intent(this, PlayerActivity::class.java)
-        playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
-        PlayerActivity.putSongExtras(playerIntent, firstSong)
-        playerIntent.putExtra(PlayerActivity.EXTRA_PLAYLIST_MODE, true)
-        startActivity(playerIntent)
     }
 
     private fun updatePlaylistStatus() {

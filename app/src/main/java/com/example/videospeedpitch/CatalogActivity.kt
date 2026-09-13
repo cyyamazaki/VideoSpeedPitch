@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -33,12 +34,23 @@ import kotlin.math.roundToInt
  * para pular a lista proporcionalmente (útil em catálogos com milhares de
  * músicas), mostrando uma bolha com a letra inicial (do cantor ou da
  * música, conforme a ordenação escolhida) da posição atual.
+ *
+ * Quando aberta com [EXTRA_QUEUE_FOR_PLAYLIST] verdadeiro (pelo botão
+ * "escolher a próxima da playlist" do player, ao terminar um vídeo),
+ * escolher uma música não a toca direto: ela entra no fim da fila da
+ * playlist e a tela fecha, tocando a próxima música pendente da fila (ver
+ * [PlaylistPlayer]) em vez de simplesmente abrir o player para essa música.
+ *
+ * Quando a busca não encontra nada neste catálogo, aparece um botão para
+ * buscar um karaokê dessa música (pelo texto digitado, presumindo cantor e
+ * nome da música) no YouTube (ver [YouTubeSearchHelper]).
  */
 class CatalogActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_ASSET_NAME = "extra_asset_name"
         const val EXTRA_TITLE = "extra_title"
+        const val EXTRA_QUEUE_FOR_PLAYLIST = "extra_queue_for_playlist"
     }
 
     private enum class SortField { CANTOR, MUSICA }
@@ -51,9 +63,11 @@ class CatalogActivity : AppCompatActivity() {
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var fastScrollThumb: View
     private lateinit var tvFastScrollLetter: TextView
+    private lateinit var btnSearchYoutubeCatalog: Button
 
     private var lastQuery = ""
     private var sortField = SortField.CANTOR
+    private var queueForPlaylist = false
 
     // Índice (código -> Uri) da pasta de vídeos, em cache em disco via CatalogRepository.
     private var fileIndex: Map<String, Uri>? = null
@@ -64,6 +78,7 @@ class CatalogActivity : AppCompatActivity() {
 
         val assetName = intent.getStringExtra(EXTRA_ASSET_NAME) ?: return finish()
         title = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
+        queueForPlaylist = intent.getBooleanExtra(EXTRA_QUEUE_FOR_PLAYLIST, false)
 
         allSongs = CatalogRepository.loadCatalog(this, assetName)
 
@@ -74,6 +89,14 @@ class CatalogActivity : AppCompatActivity() {
         val fastScrollTrack: View = findViewById(R.id.fastScrollTrack)
         fastScrollThumb = findViewById(R.id.fastScrollThumb)
         tvFastScrollLetter = findViewById(R.id.tvFastScrollLetter)
+        val tvQueueModeBanner: TextView = findViewById(R.id.tvQueueModeBanner)
+        tvQueueModeBanner.visibility = if (queueForPlaylist) View.VISIBLE else View.GONE
+        btnSearchYoutubeCatalog = findViewById(R.id.btnSearchYoutubeCatalog)
+        btnSearchYoutubeCatalog.setOnClickListener {
+            if (lastQuery.isNotEmpty()) {
+                YouTubeSearchHelper.searchKaraokeAndOpen(this, lastQuery)
+            }
+        }
 
         adapter = SongAdapter { song -> onSongSelected(song) }
         layoutManager = LinearLayoutManager(this)
@@ -210,9 +233,25 @@ class CatalogActivity : AppCompatActivity() {
 
         adapter.submitList(sorted)
         tvEmptyState.text = if (sorted.isEmpty()) getString(R.string.catalog_no_results) else ""
+
+        // O botão de busca no YouTube só faz sentido quando o motivo de não
+        // haver resultados foi uma busca sem correspondência (não quando o
+        // catálogo inteiro está vazio).
+        val showYoutubeFallback = sorted.isEmpty() && lastQuery.isNotEmpty()
+        if (showYoutubeFallback) {
+            btnSearchYoutubeCatalog.text = getString(R.string.search_youtube_for_query, lastQuery)
+            btnSearchYoutubeCatalog.visibility = View.VISIBLE
+        } else {
+            btnSearchYoutubeCatalog.visibility = View.GONE
+        }
     }
 
     private fun onSongSelected(song: Song) {
+        if (queueForPlaylist) {
+            onSongChosenForPlaylistQueue(song)
+            return
+        }
+
         val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
 
@@ -244,5 +283,42 @@ class CatalogActivity : AppCompatActivity() {
         playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
         PlayerActivity.putSongExtras(playerIntent, song)
         startActivity(playerIntent)
+    }
+
+    /**
+     * Modo "escolher a próxima da playlist": em vez de tocar a música
+     * direto, ela entra no fim da fila e a tela fecha, tocando a próxima
+     * música pendente da fila (normalmente a que acabou de ser escolhida).
+     */
+    private fun onSongChosenForPlaylistQueue(song: Song) {
+        val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
+            .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
+
+        if (treeUriString == null) {
+            Toast.makeText(this, R.string.error_no_folder_selected, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val treeUri = Uri.parse(treeUriString)
+        val index = fileIndex ?: CatalogRepository.getFileIndex(this, treeUri).also { fileIndex = it }
+
+        if (!index.containsKey(song.codigo)) {
+            Toast.makeText(
+                this,
+                getString(R.string.error_video_not_found, song.musica, song.artista, song.codigo),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        PlaylistManager.enqueue(song)
+        Toast.makeText(
+            this,
+            "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        PlaylistPlayer.playNextFromQueue(this)
+        finish()
     }
 }

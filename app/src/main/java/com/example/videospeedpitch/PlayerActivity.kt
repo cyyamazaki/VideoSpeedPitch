@@ -59,8 +59,12 @@ import androidx.media3.ui.PlayerView
  * controles principais: pausar/retomar, avançar para a próxima música da
  * playlist, finalizar a playlist (só enquanto o modo playlist estiver
  * ativo; esvazia a fila e desliga o avanço automático), voltar para a
- * tela inicial a qualquer momento e buscar a música atual no YouTube
- * (ver [YouTubeSearchHelper]).
+ * tela inicial a qualquer momento, buscar a música atual no YouTube
+ * (ver [YouTubeSearchHelper]) e, ao ativar o botão "escolher no catálogo",
+ * abrir — só quando este vídeo terminar — o último catálogo usado para
+ * escolher a próxima música da playlist (ver [PlaylistPlayer] e
+ * [CatalogActivity.EXTRA_QUEUE_FOR_PLAYLIST]), em vez do comportamento
+ * normal de fim de vídeo.
  *
  * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
  * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
@@ -93,6 +97,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_SONG_MUSICA = "state_song_musica"
         private const val STATE_SONG_TRECHO = "state_song_trecho"
         private const val STATE_SONG_CODIGO = "state_song_codigo"
+        private const val STATE_QUEUE_FROM_CATALOG = "state_queue_from_catalog"
 
         /** Anexa os dados completos da música (usados nos overlays do player) ao Intent. */
         fun putSongExtras(intent: Intent, song: Song) {
@@ -117,6 +122,12 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var btnEndPlaylist: Button
     private lateinit var btnGoHome: Button
     private lateinit var btnSearchYoutube: Button
+    private lateinit var btnQueueFromCatalog: Button
+
+    // Se ativado (pelo botão "escolher no catálogo"), ao terminar este
+    // vídeo abre o último catálogo usado para escolher a próxima música da
+    // playlist, em vez do comportamento normal de fim de vídeo.
+    private var queueFromCatalogOnEnd = false
 
     // Valores atuais (1.00x = normal)
     private var currentSpeed = 1.0f
@@ -168,6 +179,7 @@ class PlayerActivity : AppCompatActivity() {
         btnEndPlaylist = findViewById(R.id.btnEndPlaylist)
         btnGoHome = findViewById(R.id.btnGoHome)
         btnSearchYoutube = findViewById(R.id.btnSearchYoutube)
+        btnQueueFromCatalog = findViewById(R.id.btnQueueFromCatalog)
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
@@ -183,6 +195,8 @@ class PlayerActivity : AppCompatActivity() {
         pendingPlayWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
         currentSong = readSongExtras(savedInstanceState)
         updateCurrentSongOverlay()
+        queueFromCatalogOnEnd = savedInstanceState?.getBoolean(STATE_QUEUE_FROM_CATALOG) ?: false
+        updateQueueFromCatalogButton()
 
         btnReset.setOnClickListener {
             radioGroupSpeed.check(R.id.radioSpeed100)
@@ -205,6 +219,7 @@ class PlayerActivity : AppCompatActivity() {
         btnEndPlaylist.setOnClickListener { endPlaylist() }
         btnGoHome.setOnClickListener { returnToHome() }
         btnSearchYoutube.setOnClickListener { searchCurrentSongOnYoutube() }
+        btnQueueFromCatalog.setOnClickListener { toggleQueueFromCatalogOnEnd() }
 
         val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
             ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
@@ -229,6 +244,7 @@ class PlayerActivity : AppCompatActivity() {
         // já guarda a última posição/estado capturados em onStop().
         outState.putLong(STATE_POSITION_MS, player?.currentPosition ?: pendingSeekPositionMs)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player?.playWhenReady ?: pendingPlayWhenReady)
+        outState.putBoolean(STATE_QUEUE_FROM_CATALOG, queueFromCatalogOnEnd)
         currentSong?.let { song ->
             outState.putString(STATE_SONG_ARTISTA, song.artista)
             outState.putString(STATE_SONG_MUSICA, song.musica)
@@ -560,10 +576,10 @@ class PlayerActivity : AppCompatActivity() {
                     // Adiado para fora do callback do próprio player, evitando
                     // liberar/recriar o ExoPlayer durante seu próprio evento.
                     playerView.post {
-                        if (playlistMode) {
-                            playNextFromPlaylist()
-                        } else {
-                            returnToHome()
+                        when {
+                            queueFromCatalogOnEnd -> openCatalogToQueueNext()
+                            playlistMode -> playNextFromPlaylist()
+                            else -> returnToHome()
                         }
                     }
                 }
@@ -637,6 +653,41 @@ class PlayerActivity : AppCompatActivity() {
             return
         }
         YouTubeSearchHelper.searchAndOpen(this, song)
+    }
+
+    /**
+     * Ativa/desativa: se ativado, ao terminar este vídeo o app abre o
+     * último catálogo usado para você escolher a próxima música da
+     * playlist, em vez do comportamento normal de fim de vídeo.
+     */
+    private fun toggleQueueFromCatalogOnEnd() {
+        queueFromCatalogOnEnd = !queueFromCatalogOnEnd
+        updateQueueFromCatalogButton()
+        val messageRes = if (queueFromCatalogOnEnd) {
+            R.string.queue_from_catalog_armed
+        } else {
+            R.string.queue_from_catalog_disarmed
+        }
+        Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateQueueFromCatalogButton() {
+        btnQueueFromCatalog.alpha = if (queueFromCatalogOnEnd) 1f else 0.6f
+    }
+
+    /** Abre o último catálogo usado para escolher a próxima música da playlist, fechando este player. */
+    private fun openCatalogToQueueNext() {
+        val prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
+        val assetName = prefs.getString(Prefs.KEY_LAST_CATALOG_ASSET, null) ?: "catalogo_karaoke.json"
+        val catalogTitle = prefs.getString(Prefs.KEY_LAST_CATALOG_TITLE, null)
+            ?: getString(R.string.catalog_karaoke_title)
+
+        val catalogIntent = Intent(this, CatalogActivity::class.java)
+        catalogIntent.putExtra(CatalogActivity.EXTRA_ASSET_NAME, assetName)
+        catalogIntent.putExtra(CatalogActivity.EXTRA_TITLE, catalogTitle)
+        catalogIntent.putExtra(CatalogActivity.EXTRA_QUEUE_FOR_PLAYLIST, true)
+        startActivity(catalogIntent)
+        finish()
     }
 
     /** Fecha o player e volta para a tela inicial, limpando o restante da pilha. */

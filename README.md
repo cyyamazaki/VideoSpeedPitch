@@ -23,9 +23,12 @@ App Android para karaokê que:
   exatamente de onde parou (posição e se estava tocando/pausado) ao voltar de
   outra tela ou de sair do app sem fechá-lo, em vez de sortear um vídeo novo.
 - Um botão discreto (🔎), tanto no player quanto no vídeo aleatório da tela
-  inicial, **busca a música atual no YouTube** e abre o primeiro resultado
-  encontrado, ou avisa por toast se não achar. É a única funcionalidade do
-  app que precisa de internet (as demais funcionam totalmente offline).
+  inicial, **busca no YouTube a versão cantada, com letra ("lyrics")** da
+  música atual e abre o primeiro resultado encontrado, ou avisa por toast se
+  não achar — útil já que o vídeo local é o karaokê, sem voz. Na busca de um
+  catálogo sem resultados, um botão parecido busca um **karaokê** dessa
+  música no YouTube em vez disso. Essa é a única funcionalidade do app que
+  precisa de internet (as demais funcionam totalmente offline).
 
 ## Como a busca por catálogo funciona
 
@@ -61,6 +64,10 @@ Quando você toca em uma música da lista, o app:
 apontar para uma pasta local (no celular/tablet) que já tenha esses arquivos,
 nomeados pelos códigos correspondentes.
 
+Se a busca não encontrar nenhuma música no catálogo, aparece um botão para
+buscar um karaokê dela (pelo texto digitado, cantor e/ou nome da música) no
+YouTube como alternativa.
+
 ## Playlist (fila FIFO)
 
 Além de tocar uma música na hora pelo catálogo, dá pra **enfileirar músicas
@@ -77,6 +84,10 @@ no próprio player, sem sair do vídeo atual. Regras:
 - Dentro do player, botões discretos no alto do vídeo permitem avançar direto
   para a próxima música da fila ou finalizar a playlist (esvazia a fila e
   desliga o avanço automático) sem precisar sair do vídeo.
+- Outro botão discreto (📖) ativa "escolher a próxima no catálogo": quando o
+  vídeo atual terminar, em vez do comportamento normal, o último catálogo
+  usado é reaberto para você escolher a próxima música — ela entra na fila e
+  já começa a tocar em seguida.
 - Sempre que o vídeo termina (ou a playlist se esvazia), o app volta sozinho
   para a tela inicial — também dá pra voltar manualmente a qualquer momento
   pelo botão de "casa" no mesmo painel.
@@ -131,6 +142,7 @@ VideoSpeedPitch/
         │   ├── CatalogActivity.kt      # lista completa + busca + ordenação de um catálogo
         │   ├── PlaylistActivity.kt     # ver/tocar/remover a fila da playlist
         │   ├── PlaylistManager.kt      # fila FIFO em memória, compartilhada pelo app
+        │   ├── PlaylistPlayer.kt       # toca a próxima música válida da fila (compartilhado)
         │   ├── PlayerActivity.kt       # player: velocidade/tom, overlays, playlist
         │   ├── AboutActivity.kt        # tela "Sobre" com o histórico de implementações
         │   ├── CatalogRepository.kt    # lê os JSONs e indexa (com cache em disco) a pasta de vídeos

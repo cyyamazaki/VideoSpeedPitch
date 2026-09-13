@@ -323,6 +323,25 @@
             android:textColor="#FFFFFF"
             android:text="@string/youtube_search_icon" />
 
+        <!-- Ao terminar este vídeo, abre o catálogo (o mesmo usado da
+             última vez) para escolher a próxima música da playlist, em vez
+             do comportamento normal de fim de vídeo. Alpha indica se está
+             ativado ou não (ver PlayerActivity.updateQueueFromCatalogButton). -->
+        <Button
+            android:id="@+id/btnQueueFromCatalog"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:alpha="0.6"
+            android:text="@string/queue_from_catalog_icon" />
+
     </LinearLayout>
 
 </FrameLayout>

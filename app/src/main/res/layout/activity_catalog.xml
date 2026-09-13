@@ -5,6 +5,21 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Só aparece quando o catálogo foi aberto para escolher a próxima
+         música da playlist (ver CatalogActivity.EXTRA_QUEUE_FOR_PLAYLIST). -->
+    <TextView
+        android:id="@+id/tvQueueModeBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:padding="8dp"
+        android:background="#1976D2"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="@string/catalog_queue_mode_banner" />
+
     <EditText
         android:id="@+id/editSearch"
         android:layout_width="match_parent"
@@ -62,6 +77,17 @@
         android:layout_marginTop="16dp"
         android:textSize="14sp"
         android:gravity="center" />
+
+    <!-- Só aparece quando a busca não encontra nada neste catálogo: alternativa
+         para procurar um karaokê da música no YouTube (ver YouTubeSearchHelper). -->
+    <Button
+        android:id="@+id/btnSearchYoutubeCatalog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        style="?attr/borderlessButtonStyle" />
 
     <FrameLayout
         android:layout_width="match_parent"
