@@ -217,7 +217,7 @@ class PlayerActivity : AppCompatActivity() {
         btnTogglePause.setOnClickListener { togglePause() }
         btnSkipPlaylist.setOnClickListener { skipToNextInPlaylist() }
         btnEndPlaylist.setOnClickListener { endPlaylist() }
-        btnGoHome.setOnClickListener { returnToHome() }
+        btnGoHome.setOnClickListener { goHomeOrQueueFromCatalog() }
         btnSearchYoutube.setOnClickListener { searchCurrentSongOnYoutube() }
         btnQueueFromCatalog.setOnClickListener { toggleQueueFromCatalogOnEnd() }
 
@@ -688,6 +688,20 @@ class PlayerActivity : AppCompatActivity() {
         catalogIntent.putExtra(CatalogActivity.EXTRA_QUEUE_FOR_PLAYLIST, true)
         startActivity(catalogIntent)
         finish()
+    }
+
+    /**
+     * Botão "voltar à tela inicial": se "escolher no catálogo" estiver
+     * ativado, respeita essa intenção em vez de simplesmente abandoná-la —
+     * abre o catálogo para escolher a próxima música (mesmo comportamento
+     * de quando o vídeo termina sozinho) em vez de ir para a tela inicial.
+     */
+    private fun goHomeOrQueueFromCatalog() {
+        if (queueFromCatalogOnEnd) {
+            openCatalogToQueueNext()
+        } else {
+            returnToHome()
+        }
     }
 
     /** Fecha o player e volta para a tela inicial, limpando o restante da pilha. */

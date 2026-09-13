@@ -43,7 +43,11 @@ import kotlin.math.roundToInt
  *
  * Quando a busca não encontra nada neste catálogo, aparece um botão para
  * buscar um karaokê dessa música (pelo texto digitado, presumindo cantor e
- * nome da música) no YouTube (ver [YouTubeSearchHelper]).
+ * nome da música) no YouTube (ver [YouTubeSearchHelper]). Da mesma forma,
+ * se a música ESTÁ no catálogo mas não tem arquivo de vídeo na pasta
+ * selecionada, a busca desse karaokê no YouTube já é disparada
+ * automaticamente (usando o cantor/música já conhecidos), tanto ao tocar
+ * direto quanto ao escolher para a fila da playlist.
  */
 class CatalogActivity : AppCompatActivity() {
 
@@ -270,6 +274,7 @@ class CatalogActivity : AppCompatActivity() {
                 getString(R.string.error_video_not_found, song.musica, song.artista, song.codigo),
                 Toast.LENGTH_LONG
             ).show()
+            searchMissingVideoOnYoutube(song)
             return
         }
 
@@ -308,6 +313,7 @@ class CatalogActivity : AppCompatActivity() {
                 getString(R.string.error_video_not_found, song.musica, song.artista, song.codigo),
                 Toast.LENGTH_LONG
             ).show()
+            searchMissingVideoOnYoutube(song)
             return
         }
 
@@ -320,5 +326,15 @@ class CatalogActivity : AppCompatActivity() {
 
         PlaylistPlayer.playNextFromQueue(this)
         finish()
+    }
+
+    /**
+     * Música escolhida no catálogo, mas sem arquivo de vídeo na pasta
+     * selecionada: busca um karaokê dela no YouTube como alternativa,
+     * usando o cantor e o nome da música já conhecidos (mais precisos do
+     * que reaproveitar o texto digitado na busca).
+     */
+    private fun searchMissingVideoOnYoutube(song: Song) {
+        YouTubeSearchHelper.searchKaraokeAndOpen(this, "${song.artista} ${song.musica}")
     }
 }

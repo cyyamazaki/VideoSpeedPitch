@@ -60,7 +60,8 @@ Quando você toca em uma música da lista, o app:
    importa é o nome).
 3. Se encontrar, mostra um toast confirmando e abre o player já naquele vídeo.
    Se não encontrar, avisa (com os dados da música) que o arquivo daquele
-   código não está na pasta.
+   código não está na pasta e já busca um karaokê dela no YouTube como
+   alternativa.
 
 **Importante:** os vídeos não são baixados nem vêm com o app — você precisa
 apontar para uma pasta local (no celular/tablet) que já tenha esses arquivos,
@@ -89,7 +90,9 @@ no próprio player, sem sair do vídeo atual. Regras:
 - Outro botão discreto (📖) ativa "escolher a próxima no catálogo": quando o
   vídeo atual terminar, em vez do comportamento normal, o último catálogo
   usado é reaberto para você escolher a próxima música — ela entra na fila e
-  já começa a tocar em seguida.
+  já começa a tocar em seguida. Se você tocar em "voltar à tela inicial" com
+  essa opção ativada, ela também é respeitada (abre o catálogo em vez de
+  simplesmente sair).
 - Sempre que o vídeo termina (ou a playlist se esvazia), o app volta sozinho
   para a tela inicial — também dá pra voltar manualmente a qualquer momento
   pelo botão de "casa" no mesmo painel.
