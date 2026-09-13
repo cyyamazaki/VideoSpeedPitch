@@ -25,16 +25,42 @@
             app:use_controller="false"
             app:resize_mode="fit" />
 
-        <TextView
-            android:id="@+id/tvIdleSongInfo"
+        <!-- Faixa discreta no topo do vídeo: dados da música aleatória atual
+             e um botão para trocar de vídeo na hora, sem esperar o atual
+             terminar. -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:background="#66000000"
-            android:padding="10dp"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:visibility="gone" />
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/tvIdleSongInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btnShuffleIdleVideo"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:textSize="15sp"
+                android:textColor="#FFFFFF"
+                android:text="@string/shuffle_icon" />
+
+        </LinearLayout>
 
     </FrameLayout>
 

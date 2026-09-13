@@ -44,7 +44,9 @@ import androidx.media3.ui.PlayerView
  * acessível (rolável) logo abaixo — nenhuma interação nesta tela
  * interrompe o vídeo. Ele só é escondido ao navegar para uma tela de
  * escolha em lista (catálogo ou playlist), voltando a tocar (outro vídeo
- * aleatório) assim que a tela inicial volta a ficar em primeiro plano.
+ * aleatório) assim que a tela inicial volta a ficar em primeiro plano. Um
+ * botão discreto no alto do vídeo permite trocar para outro aleatório a
+ * qualquer momento, sem esperar o atual terminar.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var idleVideoContainer: View
     private lateinit var idlePlayerView: PlayerView
     private lateinit var tvIdleSongInfo: TextView
+    private lateinit var btnShuffleIdleVideo: Button
 
     private var idlePlayer: ExoPlayer? = null
     private var idleFileIndex: Map<String, Uri> = emptyMap()
@@ -92,6 +95,8 @@ class MainActivity : AppCompatActivity() {
         idleVideoContainer = findViewById(R.id.idleVideoContainer)
         idlePlayerView = findViewById(R.id.idlePlayerView)
         tvIdleSongInfo = findViewById(R.id.tvIdleSongInfo)
+        btnShuffleIdleVideo = findViewById(R.id.btnShuffleIdleVideo)
+        btnShuffleIdleVideo.setOnClickListener { playNextIdleVideo() }
 
         val btnSelectFolder: Button = findViewById(R.id.btnSelectFolder)
         val btnCatalogKaraoke: Button = findViewById(R.id.btnCatalogKaraoke)

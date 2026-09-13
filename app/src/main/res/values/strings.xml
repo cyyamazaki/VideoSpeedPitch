@@ -61,6 +61,7 @@
     <string name="toast_song_added_prefix">Adicionada à playlist:</string>
     <string name="toast_song_now_playing_prefix">Tocando:</string>
     <string name="idle_now_playing_prefix">Tocando agora:</string>
+    <string name="shuffle_icon">🔀</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
@@ -74,6 +75,8 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Botão discreto no alto do vídeo aleatório da tela inicial para trocar de vídeo na hora, sem esperar o atual terminar.</item>
+        <item>Adicionar a primeira música da fila (pelo número, na tela inicial) já toca ela na hora, em vez de só enfileirar.</item>
         <item>Tela inicial reordenada: escolha por número em primeiro lugar, pasta de vídeos por último, com o campo do número sempre em foco (pronto para digitar).</item>
         <item>Tela "Sobre", com este histórico de implementações, acessível pela tela inicial.</item>
         <item>Player sem os controles nativos do ExoPlayer (evita escurecer o vídeo e atrapalhar legendas); painel próprio de velocidade/tom oculto por padrão, reaparecendo ao tocar a tela, mover o mouse ou digitar um número, com ocultação automática. No alto do vídeo, um overlay discreto sempre mostra a música atual, a próxima da playlist (quando houver) e botões de pausar/retomar e avançar a playlist.</item>
