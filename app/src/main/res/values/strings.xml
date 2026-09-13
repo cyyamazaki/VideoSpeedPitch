@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Video Speed Pitch</string>
+    <string name="choose_video">Escolher vídeo avulso (arquivo)</string>
+    <string name="speed_label">Velocidade: %.2fx</string>
+    <string name="pitch_label">Tom: %.2fx</string>
+    <string name="reset">Redefinir</string>
+
+    <!-- Hub / MainActivity -->
+    <string name="step1_title">1. Pasta onde estão os vídeos</string>
+    <string name="step2_title">2. Escolha o catálogo</string>
+    <string name="step2_subtitle">Cada catálogo é pesquisado separadamente, nunca junto com o outro.</string>
+    <string name="step3_title">Ou, se preferir</string>
+    <string name="select_folder">Selecionar pasta de vídeos</string>
+    <string name="folder_selected_ok">Pasta de vídeos selecionada com sucesso.</string>
+    <string name="folder_selected_status">Pasta selecionada: %s</string>
+    <string name="folder_not_selected_status">Nenhuma pasta selecionada ainda. Os vídeos dos catálogos precisam estar em uma pasta local, nomeados com o código da música (ex.: 18483.mp4).</string>
+
+    <!-- Catálogos -->
+    <string name="catalog_karaoke_title">Catálogo Karaokê</string>
+    <string name="catalog_japones_title">Catálogo Japonês</string>
+    <string name="search_hint">Buscar por cantor/intérprete ou música…</string>
+    <string name="catalog_hint_min_chars">Digite pelo menos %d letras para buscar.</string>
+    <string name="catalog_no_results">Nenhuma música encontrada.</string>
+    <string name="song_subtitle_format">%1$s · código %2$s</string>
+
+    <!-- Erros -->
+    <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
+    <string name="error_video_not_found">Não foi encontrado nenhum arquivo de vídeo com o código %s na pasta selecionada.</string>
+</resources>
