@@ -66,6 +66,7 @@
     <string name="toast_song_now_playing_prefix">Tocando:</string>
     <string name="idle_now_playing_prefix">Tocando agora:</string>
     <string name="shuffle_icon">🔀</string>
+    <string name="add_to_playlist_icon">➕</string>
     <string name="refresh_catalogs_button">Atualizar catálogos (vídeos disponíveis)</string>
     <string name="catalogs_refreshed_toast">Catálogos atualizados: %d vídeo(s) disponível(is) na pasta.</string>
     <string name="youtube_search_icon">🔎</string>
@@ -89,6 +90,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Botão discreto (➕) no vídeo aleatório da tela inicial para adicionar a música atual à playlist, sem interromper o vídeo que já está tocando.</item>
         <item>Na busca de um catálogo sem resultados, um botão permite buscar um karaokê da música (pelo cantor e nome digitados) diretamente no YouTube.</item>
         <item>Botão discreto (📖) no vídeo do player: ao ativar, quando o vídeo terminar o app abre o último catálogo usado para você escolher a próxima música da playlist, que já entra na fila e começa a tocar em seguida.</item>
         <item>O vídeo aleatório da tela inicial também retoma exatamente de onde parou (posição e se estava tocando/pausado) ao voltar de outra tela ou de sair do app sem fechá-lo, em vez de sempre sortear um vídeo novo.</item>

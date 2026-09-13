@@ -47,8 +47,9 @@ import androidx.media3.ui.PlayerView
  * (ex.: botão Início); ao voltar, retoma o **mesmo** vídeo exatamente de
  * onde parou (posição e se estava tocando/pausado), em vez de sortear um
  * novo. Botões discretos no alto do vídeo permitem trocar para outro
- * aleatório a qualquer momento (sem esperar o atual terminar) e buscar a
- * música atual no YouTube (ver [YouTubeSearchHelper]).
+ * aleatório a qualquer momento (sem esperar o atual terminar), buscar a
+ * música atual no YouTube (ver [YouTubeSearchHelper]) e adicioná-la à
+ * playlist (só enfileira, sem tocar na hora — ela já está tocando aqui).
  */
 class MainActivity : AppCompatActivity() {
 
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvIdleSongInfo: TextView
     private lateinit var btnShuffleIdleVideo: Button
     private lateinit var btnSearchYoutubeIdle: Button
+    private lateinit var btnAddIdleToPlaylist: Button
 
     private var idlePlayer: ExoPlayer? = null
     private var idleFileIndex: Map<String, Uri> = emptyMap()
@@ -111,6 +113,8 @@ class MainActivity : AppCompatActivity() {
         btnShuffleIdleVideo.setOnClickListener { playNextIdleVideo() }
         btnSearchYoutubeIdle = findViewById(R.id.btnSearchYoutubeIdle)
         btnSearchYoutubeIdle.setOnClickListener { searchIdleSongOnYoutube() }
+        btnAddIdleToPlaylist = findViewById(R.id.btnAddIdleToPlaylist)
+        btnAddIdleToPlaylist.setOnClickListener { addIdleSongToPlaylist() }
 
         val btnSelectFolder: Button = findViewById(R.id.btnSelectFolder)
         val btnCatalogKaraoke: Button = findViewById(R.id.btnCatalogKaraoke)
@@ -260,6 +264,26 @@ class MainActivity : AppCompatActivity() {
             return
         }
         YouTubeSearchHelper.searchAndOpen(this, song)
+    }
+
+    /**
+     * Adiciona a música do vídeo aleatório atual à playlist — só enfileira,
+     * sem tocar na hora (ela já está tocando aqui mesmo), diferente do
+     * comportamento da caixa de número.
+     */
+    private fun addIdleSongToPlaylist() {
+        val song = currentIdleSong
+        if (song == null) {
+            Toast.makeText(this, R.string.error_song_info_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        PlaylistManager.enqueue(song)
+        updatePlaylistStatus()
+        Toast.makeText(
+            this,
+            "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     /**

@@ -22,6 +22,8 @@ App Android para karaokê que:
   selecionada enquanto você não abre um catálogo ou a playlist — e retoma
   exatamente de onde parou (posição e se estava tocando/pausado) ao voltar de
   outra tela ou de sair do app sem fechá-lo, em vez de sortear um vídeo novo.
+  Um botão discreto (➕) adiciona a música desse vídeo à playlist sem
+  interromper o que já está tocando.
 - Um botão discreto (🔎), tanto no player quanto no vídeo aleatório da tela
   inicial, **busca no YouTube a versão cantada, com letra ("lyrics")** da
   música atual e abre o primeiro resultado encontrado, ou avisa por toast se
