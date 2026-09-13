@@ -79,6 +79,10 @@ class MainActivity : AppCompatActivity() {
                     .edit()
                     .putString(Prefs.KEY_VIDEOS_TREE_URI, uri.toString())
                     .apply()
+                // Uma nova seleção de pasta invalida qualquer índice de
+                // arquivos em cache (pasta diferente, ou o usuário quer
+                // forçar uma nova varredura após adicionar vídeos).
+                CatalogRepository.invalidateFileIndexCache(this)
                 updateFolderStatus()
                 Toast.makeText(this, R.string.folder_selected_ok, Toast.LENGTH_SHORT).show()
             }
@@ -170,7 +174,7 @@ class MainActivity : AppCompatActivity() {
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null) ?: return
         val treeUri = Uri.parse(treeUriString)
 
-        val videos = CatalogRepository.buildFileIndex(this, treeUri).values.toList()
+        val videos = CatalogRepository.getFileIndex(this, treeUri).values.toList()
         if (videos.isEmpty()) return
 
         val playerIntent = Intent(this, PlayerActivity::class.java)

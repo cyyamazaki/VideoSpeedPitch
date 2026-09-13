@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 
 class SongAdapter(
@@ -12,8 +13,17 @@ class SongAdapter(
 
     private var items: List<Song> = emptyList()
 
+    // null = nenhuma pasta selecionada ainda (não mostra o indicador de disponibilidade).
+    private var availableCodes: Set<String>? = null
+
     fun submitList(newItems: List<Song>) {
         items = newItems
+        notifyDataSetChanged()
+    }
+
+    /** Códigos com vídeo disponível na pasta selecionada; `null` oculta o indicador. */
+    fun setAvailableCodes(codes: Set<String>?) {
+        availableCodes = codes
         notifyDataSetChanged()
     }
 
@@ -23,7 +33,7 @@ class SongAdapter(
     }
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(items[position], availableCodes)
     }
 
     override fun getItemCount(): Int = items.size
@@ -31,14 +41,32 @@ class SongAdapter(
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMusica: TextView = itemView.findViewById(R.id.tvMusica)
         private val tvArtista: TextView = itemView.findViewById(R.id.tvArtista)
+        private val tvAvailability: TextView = itemView.findViewById(R.id.tvAvailability)
 
-        fun bind(song: Song) {
+        fun bind(song: Song, availableCodes: Set<String>?) {
             tvMusica.text = song.musica
             tvArtista.text = itemView.context.getString(
                 R.string.song_subtitle_format,
                 song.artista,
                 song.codigo
             )
+
+            if (availableCodes == null) {
+                tvAvailability.visibility = View.GONE
+            } else {
+                val available = song.codigo in availableCodes
+                tvAvailability.visibility = View.VISIBLE
+                tvAvailability.text = itemView.context.getString(
+                    if (available) R.string.song_available else R.string.song_unavailable
+                )
+                tvAvailability.setTextColor(
+                    ContextCompat.getColor(
+                        itemView.context,
+                        if (available) R.color.song_available else R.color.song_unavailable
+                    )
+                )
+            }
+
             itemView.setOnClickListener { onClick(song) }
         }
     }

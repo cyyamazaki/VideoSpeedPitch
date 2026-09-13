@@ -34,9 +34,13 @@
     <string name="catalog_japones_title">Catálogo Japonês</string>
     <string name="search_hint">Buscar por cantor/intérprete, música ou número…</string>
     <string name="search_action">Buscar</string>
-    <string name="catalog_hint_min_chars">Digite pelo menos %d letras e pressione Enter/Buscar.</string>
     <string name="catalog_no_results">Nenhuma música encontrada.</string>
     <string name="song_subtitle_format">%1$s · código %2$s</string>
+    <string name="sort_by_label">Ordenar por:</string>
+    <string name="sort_by_cantor">Cantor</string>
+    <string name="sort_by_musica">Música</string>
+    <string name="song_available">✓ Disponível</string>
+    <string name="song_unavailable">✗ Sem vídeo</string>
 
     <!-- Playlist (fila FIFO) -->
     <string name="song_number_hint">Número da música</string>

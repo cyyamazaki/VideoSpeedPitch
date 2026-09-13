@@ -69,7 +69,7 @@ class PlaylistActivity : AppCompatActivity() {
         }
 
         val treeUri = Uri.parse(treeUriString)
-        val index = CatalogRepository.buildFileIndex(this, treeUri)
+        val index = CatalogRepository.getFileIndex(this, treeUri)
 
         // Descarta, do início da fila, códigos sem arquivo correspondente.
         var firstSong = PlaylistManager.peekAll().firstOrNull()

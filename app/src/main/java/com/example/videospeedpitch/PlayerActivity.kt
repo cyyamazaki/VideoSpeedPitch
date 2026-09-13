@@ -48,6 +48,12 @@ import androidx.media3.ui.PlayerView
  * número — reaproveitando o próprio mecanismo de exibição/ocultação de
  * controles do ExoPlayer. Sempre que aparece, o foco vai automaticamente
  * para o final do campo "Número da música".
+ *
+ * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
+ * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
+ * guarda vídeo atual, título, modo playlist, velocidade/pitch escolhidos e a
+ * posição de reprodução, e [onCreate] restaura tudo isso antes de retomar o
+ * vídeo de onde parou.
  */
 class PlayerActivity : AppCompatActivity() {
 
@@ -57,6 +63,14 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_PLAYLIST_MODE = "extra_playlist_mode"
         private const val NEXT_SONG_WARNING_MS = 5000L
         private const val POLL_INTERVAL_MS = 500L
+
+        private const val STATE_VIDEO_URI = "state_video_uri"
+        private const val STATE_TITLE = "state_title"
+        private const val STATE_PLAYLIST_MODE = "state_playlist_mode"
+        private const val STATE_SPEED = "state_speed"
+        private const val STATE_PITCH = "state_pitch"
+        private const val STATE_POSITION_MS = "state_position_ms"
+        private const val STATE_PLAY_WHEN_READY = "state_play_when_ready"
     }
 
     private var player: ExoPlayer? = null
@@ -74,8 +88,12 @@ class PlayerActivity : AppCompatActivity() {
     private var currentUri: Uri? = null
     private var playlistMode = false
 
-    // Índice (código -> Uri) da pasta de vídeos, usado apenas em modo playlist.
-    private var fileIndex: Map<String, Uri>? = null
+    // Consumidos uma única vez, na primeira playVideo() após onCreate (para
+    // restaurar posição/estado de reprodução ao recriar a Activity, p.ex.
+    // por rotação de tela); chamadas seguintes de playVideo (avanço de
+    // playlist) sempre começam do zero, tocando.
+    private var pendingSeekPositionMs = 0L
+    private var pendingPlayWhenReady = true
 
     private val handler = Handler(Looper.getMainLooper())
     private var warnedForCurrentVideo = false
@@ -99,8 +117,15 @@ class PlayerActivity : AppCompatActivity() {
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
-        title = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
-        playlistMode = intent.getBooleanExtra(EXTRA_PLAYLIST_MODE, false)
+        title = savedInstanceState?.getString(STATE_TITLE)
+            ?: intent.getStringExtra(EXTRA_TITLE)
+            ?: getString(R.string.app_name)
+        playlistMode = savedInstanceState?.getBoolean(STATE_PLAYLIST_MODE)
+            ?: intent.getBooleanExtra(EXTRA_PLAYLIST_MODE, false)
+        currentSpeed = savedInstanceState?.getFloat(STATE_SPEED) ?: 1.0f
+        currentPitch = savedInstanceState?.getFloat(STATE_PITCH) ?: 1.0f
+        pendingSeekPositionMs = savedInstanceState?.getLong(STATE_POSITION_MS) ?: 0L
+        pendingPlayWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
 
         btnReset.setOnClickListener {
             radioGroupSpeed.check(R.id.radioSpeed100)
@@ -111,10 +136,15 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         setupSelectors()
+        // Reflete a velocidade/pitch restaurados (ou o padrão de 100%) nos
+        // botões de seleção antes de começar a tocar.
+        radioGroupSpeed.check(speedToRadioId(currentSpeed))
+        radioGroupPitch.check(pitchToRadioId(currentPitch))
         setupSongNumberEntry(btnAddToPlaylist)
         setupControlsVisibility()
 
-        val uri = intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
+        val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
+            ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
         if (uri == null) {
             Toast.makeText(this, "Nenhum vídeo informado.", Toast.LENGTH_LONG).show()
             finish()
@@ -122,6 +152,31 @@ class PlayerActivity : AppCompatActivity() {
         }
         currentUri = uri
         playVideo(uri)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(STATE_VIDEO_URI, currentUri)
+        outState.putString(STATE_TITLE, title?.toString())
+        outState.putBoolean(STATE_PLAYLIST_MODE, playlistMode)
+        outState.putFloat(STATE_SPEED, currentSpeed)
+        outState.putFloat(STATE_PITCH, currentPitch)
+        outState.putLong(STATE_POSITION_MS, player?.currentPosition ?: 0L)
+        outState.putBoolean(STATE_PLAY_WHEN_READY, player?.playWhenReady ?: true)
+    }
+
+    private fun speedToRadioId(speed: Float) = when (speed) {
+        0.90f -> R.id.radioSpeed90
+        0.95f -> R.id.radioSpeed95
+        else -> R.id.radioSpeed100
+    }
+
+    private fun pitchToRadioId(pitch: Float) = when (pitch) {
+        0.90f -> R.id.radioPitch90
+        0.95f -> R.id.radioPitch95
+        1.05f -> R.id.radioPitch105
+        1.10f -> R.id.radioPitch110
+        else -> R.id.radioPitch100
     }
 
     private fun setupSelectors() {
@@ -341,9 +396,14 @@ class PlayerActivity : AppCompatActivity() {
 
         val mediaItem = MediaItem.fromUri(uri)
         exoPlayer.setMediaItem(mediaItem)
+        if (pendingSeekPositionMs > 0L) {
+            exoPlayer.seekTo(pendingSeekPositionMs)
+            pendingSeekPositionMs = 0L
+        }
         exoPlayer.playbackParameters = PlaybackParameters(currentSpeed, currentPitch)
         exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        exoPlayer.playWhenReady = pendingPlayWhenReady
+        pendingPlayWhenReady = true
 
         player = exoPlayer
 
@@ -360,7 +420,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         val treeUri = Uri.parse(treeUriString)
-        val index = fileIndex ?: CatalogRepository.buildFileIndex(this, treeUri).also { fileIndex = it }
+        val index = CatalogRepository.getFileIndex(this, treeUri)
 
         // Pula, em ordem, códigos da fila sem arquivo correspondente na pasta.
         var nextSong = PlaylistManager.dequeue()

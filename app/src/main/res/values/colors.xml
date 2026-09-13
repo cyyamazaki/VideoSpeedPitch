@@ -1,0 +1,4 @@
+<resources>
+    <color name="song_available">#2E7D32</color>
+    <color name="song_unavailable">#C62828</color>
+</resources>

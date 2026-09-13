@@ -15,6 +15,46 @@
         android:imeOptions="actionSearch"
         android:imeActionLabel="@string/search_action" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sort_by_label"
+            android:textSize="13sp"
+            android:layout_marginEnd="8dp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroupSort"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioSortCantor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="@string/sort_by_cantor" />
+
+            <RadioButton
+                android:id="@+id/radioSortMusica"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/sort_by_musica" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvEmptyState"
         android:layout_width="match_parent"
