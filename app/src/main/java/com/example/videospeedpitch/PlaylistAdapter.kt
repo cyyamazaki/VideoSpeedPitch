@@ -33,6 +33,7 @@ class PlaylistAdapter(
         private val tvPosition: TextView = itemView.findViewById(R.id.tvPlaylistPosition)
         private val tvMusica: TextView = itemView.findViewById(R.id.tvPlaylistMusica)
         private val tvArtista: TextView = itemView.findViewById(R.id.tvPlaylistArtista)
+        private val tvTrecho: TextView = itemView.findViewById(R.id.tvPlaylistTrecho)
         private val btnRemove: Button = itemView.findViewById(R.id.btnRemoveFromPlaylist)
 
         fun bind(song: Song, position: Int) {
@@ -43,6 +44,12 @@ class PlaylistAdapter(
                 song.artista,
                 song.codigo
             )
+            if (song.trecho.isNotBlank()) {
+                tvTrecho.visibility = View.VISIBLE
+                tvTrecho.text = song.trecho
+            } else {
+                tvTrecho.visibility = View.GONE
+            }
             btnRemove.setOnClickListener { onRemove(song) }
         }
     }

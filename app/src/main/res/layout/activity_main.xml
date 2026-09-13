@@ -1,143 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000">
 
-    <LinearLayout
+    <!-- Vídeo aleatório tocando continuamente (embutido na própria tela
+         inicial, sem espera), enquanto o usuário não abrir um catálogo ou
+         a playlist. Some (peso 0 via GONE) apenas nessas trocas de tela;
+         quando visível, ocupa a maior parte da altura e os controles
+         abaixo encolhem para uma faixa rolável. -->
+    <FrameLayout
+        android:id="@+id/idleVideoContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:visibility="gone">
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/idlePlayerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:use_controller="false"
+            app:resize_mode="fit" />
 
         <TextView
+            android:id="@+id/tvIdleSongInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Passo 1: pasta de vídeos -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step1_title"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp" />
-
-        <TextView
-            android:id="@+id/tvFolderStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#66000000"
+            android:padding="10dp"
+            android:textColor="#FFFFFF"
             android:textSize="13sp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp" />
+            android:visibility="gone" />
 
-        <Button
-            android:id="@+id/btnSelectFolder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/select_folder" />
+    </FrameLayout>
 
-        <!-- Passo 2: catálogos (mantidos sempre separados) -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step2_title"
-            android:textStyle="bold"
-            android:layout_marginTop="28dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step2_subtitle"
-            android:textSize="13sp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/btnCatalogKaraoke"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/catalog_karaoke_title" />
-
-        <Button
-            android:id="@+id/btnCatalogJapones"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/catalog_japones_title" />
-
-        <!-- Alternativa: escolher um vídeo avulso -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step3_title"
-            android:textStyle="bold"
-            android:layout_marginTop="28dp" />
-
-        <Button
-            android:id="@+id/btnChooseVideo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/choose_video" />
-
-        <!-- Playlist: adicionar música pelo número (fila FIFO) -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step4_title"
-            android:textStyle="bold"
-            android:layout_marginTop="28dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/step4_subtitle"
-            android:textSize="13sp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="?android:attr/colorBackground">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <EditText
-                android:id="@+id/editSongNumber"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/song_number_hint"
-                android:inputType="number"
-                android:maxLines="1"
-                android:imeOptions="actionDone" />
+                android:text="@string/app_name"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Passo 1: escolher/adicionar música pelo número (playlist) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/step4_title"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/step4_subtitle"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/editSongNumber"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/song_number_hint"
+                    android:inputType="number"
+                    android:maxLines="1"
+                    android:imeOptions="actionDone" />
+
+                <Button
+                    android:id="@+id/btnAddToPlaylist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/add_to_playlist" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPlaylistStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
 
             <Button
-                android:id="@+id/btnAddToPlaylist"
-                android:layout_width="wrap_content"
+                android:id="@+id/btnOpenPlaylist"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/add_to_playlist" />
+                android:layout_marginTop="6dp"
+                android:text="@string/view_playlist" />
+
+            <!-- Passo 2: catálogos (mantidos sempre separados) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/step2_title"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:layout_marginTop="14dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/step2_subtitle"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="4dp" />
+
+            <Button
+                android:id="@+id/btnCatalogKaraoke"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/catalog_karaoke_title" />
+
+            <Button
+                android:id="@+id/btnCatalogJapones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/catalog_japones_title" />
+
+            <!-- Passo 3: pasta de vídeos (por último) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/step1_title"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:layout_marginTop="14dp" />
+
+            <TextView
+                android:id="@+id/tvFolderStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="4dp" />
+
+            <Button
+                android:id="@+id/btnSelectFolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_folder" />
+
+            <Button
+                android:id="@+id/btnAbout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/about"
+                style="?attr/borderlessButtonStyle" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvPlaylistStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:layout_marginTop="8dp" />
+    </ScrollView>
 
-        <Button
-            android:id="@+id/btnOpenPlaylist"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/view_playlist" />
-
-    </LinearLayout>
-
-</ScrollView>
+</LinearLayout>

@@ -3,9 +3,8 @@ package com.example.videospeedpitch
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.KeyEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
@@ -13,56 +12,51 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 
 /**
  * Tela inicial (hub) do app.
  *
- * Fluxo:
- *  1. O usuário seleciona, uma vez, a pasta onde ficam os arquivos de vídeo
- *     (o nome de cada arquivo deve ser o código numérico da música, ex.:
- *     "18483.mp4"). Essa permissão fica salva entre execuções do app; a
- *     cada abertura, verificamos se o sistema ainda concede a permissão
- *     persistente antes de considerá-la válida.
+ * Fluxo (nessa ordem na tela, priorizando a ação mais rápida/frequente):
+ *  1. Digitar diretamente o número de uma música (em qualquer catálogo)
+ *     para adicioná-la a uma playlist (fila FIFO) que acumula músicas e as
+ *     reproduz em sequência. Esse campo sempre está em foco, com o cursor
+ *     no final do que já foi digitado, pronto para receber o próximo
+ *     número sem precisar tocar nele.
  *  2. O usuário escolhe QUAL catálogo usar (Karaokê ou Japonês) — os dois
  *     catálogos são sempre mantidos separados; nunca aparecem misturados
- *     na mesma busca.
- *  3. Dentro do catálogo escolhido, busca por cantor/intérprete, música ou
- *     número e toca o vídeo correspondente.
- *  4. Também é possível digitar diretamente o número de uma música (em
- *     qualquer catálogo) para adicioná-la a uma playlist (fila FIFO) que
- *     acumula músicas e as reproduz em sequência.
+ *     na mesma busca. Dentro do catálogo escolhido, busca por
+ *     cantor/intérprete, música ou número e toca o vídeo correspondente.
+ *  3. Por último, a seleção (única, esporádica) da pasta onde ficam os
+ *     arquivos de vídeo (o nome de cada arquivo deve ser o código numérico
+ *     da música, ex.: "18483.mp4"). Essa permissão fica salva entre
+ *     execuções do app; a cada abertura, verificamos se o sistema ainda
+ *     concede a permissão persistente antes de considerá-la válida.
  *
- * A opção de escolher um vídeo avulso (fora dos catálogos) continua
- * disponível, para manter a funcionalidade original do app.
- *
- * Modo ocioso: se a tela inicial ficar [IDLE_TIMEOUT_MS] sem nenhuma
- * interação (toque ou tecla) e uma pasta de vídeos já tiver sido
- * selecionada, o app toca automaticamente um vídeo aleatório dessa pasta,
- * no maior tamanho possível (o player já abre com os controles ocultos e
- * em tela cheia). O temporizador reinicia a cada interação e sempre que a
- * tela inicial volta a ficar em primeiro plano.
+ * Vídeo em segundo plano: sempre que a tela inicial está em primeiro
+ * plano e uma pasta de vídeos já foi selecionada, um vídeo aleatório dessa
+ * pasta toca embutido nela mesma (sem espera e sem abrir outra Activity),
+ * mostrando os dados da música no alto. A área de controles encolhe para
+ * dar lugar ao vídeo, que ocupa a maior parte da tela, mas continua
+ * acessível (rolável) logo abaixo — nenhuma interação nesta tela
+ * interrompe o vídeo. Ele só é escondido ao navegar para uma tela de
+ * escolha em lista (catálogo ou playlist), voltando a tocar (outro vídeo
+ * aleatório) assim que a tela inicial volta a ficar em primeiro plano.
  */
 class MainActivity : AppCompatActivity() {
-
-    companion object {
-        private const val IDLE_TIMEOUT_MS = 30_000L
-    }
 
     private lateinit var tvFolderStatus: TextView
     private lateinit var editSongNumber: EditText
     private lateinit var tvPlaylistStatus: TextView
+    private lateinit var idleVideoContainer: View
+    private lateinit var idlePlayerView: PlayerView
+    private lateinit var tvIdleSongInfo: TextView
 
-    private val idleHandler = Handler(Looper.getMainLooper())
-    private val idleRunnable = Runnable { playRandomIdleVideo() }
-
-    private val pickVideoLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-            if (uri != null) {
-                val playerIntent = Intent(this, PlayerActivity::class.java)
-                playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri)
-                startActivity(playerIntent)
-            }
-        }
+    private var idlePlayer: ExoPlayer? = null
+    private var idleFileIndex: Map<String, Uri> = emptyMap()
 
     private val pickFolderLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -95,20 +89,19 @@ class MainActivity : AppCompatActivity() {
         tvFolderStatus = findViewById(R.id.tvFolderStatus)
         editSongNumber = findViewById(R.id.editSongNumber)
         tvPlaylistStatus = findViewById(R.id.tvPlaylistStatus)
+        idleVideoContainer = findViewById(R.id.idleVideoContainer)
+        idlePlayerView = findViewById(R.id.idlePlayerView)
+        tvIdleSongInfo = findViewById(R.id.tvIdleSongInfo)
 
         val btnSelectFolder: Button = findViewById(R.id.btnSelectFolder)
-        val btnChooseVideo: Button = findViewById(R.id.btnChooseVideo)
         val btnCatalogKaraoke: Button = findViewById(R.id.btnCatalogKaraoke)
         val btnCatalogJapones: Button = findViewById(R.id.btnCatalogJapones)
         val btnAddToPlaylist: Button = findViewById(R.id.btnAddToPlaylist)
         val btnOpenPlaylist: Button = findViewById(R.id.btnOpenPlaylist)
+        val btnAbout: Button = findViewById(R.id.btnAbout)
 
         btnSelectFolder.setOnClickListener {
             pickFolderLauncher.launch(null)
-        }
-
-        btnChooseVideo.setOnClickListener {
-            pickVideoLauncher.launch(arrayOf("video/*"))
         }
 
         btnCatalogKaraoke.setOnClickListener {
@@ -140,47 +133,86 @@ class MainActivity : AppCompatActivity() {
         btnOpenPlaylist.setOnClickListener {
             startActivity(Intent(this, PlaylistActivity::class.java))
         }
+
+        btnAbout.setOnClickListener {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
     }
 
     override fun onResume() {
         super.onResume()
         updateFolderStatus()
         updatePlaylistStatus()
-        scheduleIdleTimer()
+        playRandomIdleVideo()
+        focusSongNumberAtEnd()
     }
 
     override fun onPause() {
         super.onPause()
-        idleHandler.removeCallbacks(idleRunnable)
+        stopIdlePlayback()
     }
 
-    /**
-     * Chamado automaticamente pelo Android a cada toque, tecla ou clique
-     * despachado para esta Activity — o gatilho ideal para reiniciar a
-     * contagem de ociosidade sem precisar interceptar cada View individual.
-     */
-    override fun onUserInteraction() {
-        super.onUserInteraction()
-        scheduleIdleTimer()
+    /** Mantém o foco sempre no final do campo de número, pronto para digitar. */
+    private fun focusSongNumberAtEnd() {
+        editSongNumber.requestFocus()
+        editSongNumber.setSelection(editSongNumber.text?.length ?: 0)
     }
 
-    private fun scheduleIdleTimer() {
-        idleHandler.removeCallbacks(idleRunnable)
-        idleHandler.postDelayed(idleRunnable, IDLE_TIMEOUT_MS)
-    }
-
+    /** Começa a tocar, embutido nesta tela e sem espera, um vídeo aleatório da pasta selecionada. */
     private fun playRandomIdleVideo() {
         val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null) ?: return
         val treeUri = Uri.parse(treeUriString)
 
-        val videos = CatalogRepository.getFileIndex(this, treeUri).values.toList()
-        if (videos.isEmpty()) return
+        idleFileIndex = CatalogRepository.getFileIndex(this, treeUri)
+        if (idleFileIndex.isEmpty()) return
 
-        val playerIntent = Intent(this, PlayerActivity::class.java)
-        playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videos.random())
-        playerIntent.putExtra(PlayerActivity.EXTRA_TITLE, getString(R.string.idle_random_video_title))
-        startActivity(playerIntent)
+        idleVideoContainer.visibility = View.VISIBLE
+
+        val exoPlayer = ExoPlayer.Builder(this).build()
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                // Ao terminar um vídeo, começa outro aleatório da mesma
+                // pasta, continuamente, até a tela sair de primeiro plano.
+                if (playbackState == Player.STATE_ENDED) {
+                    playNextIdleVideo()
+                }
+            }
+        })
+        idlePlayerView.player = exoPlayer
+        idlePlayer = exoPlayer
+        playNextIdleVideo()
+    }
+
+    private fun playNextIdleVideo() {
+        val exoPlayer = idlePlayer ?: return
+        if (idleFileIndex.isEmpty()) return
+
+        val (codigo, uri) = idleFileIndex.entries.random()
+        exoPlayer.setMediaItem(MediaItem.fromUri(uri))
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
+        updateIdleSongInfo(codigo)
+    }
+
+    /** Mostra, sobre o vídeo, os dados (cantor, música, início da letra) do vídeo aleatório atual. */
+    private fun updateIdleSongInfo(codigo: String) {
+        val song = CatalogRepository.findSongByCodigo(this, codigo)
+        if (song == null) {
+            tvIdleSongInfo.visibility = View.GONE
+            return
+        }
+        tvIdleSongInfo.visibility = View.VISIBLE
+        tvIdleSongInfo.text = "${getString(R.string.idle_now_playing_prefix)}\n${song.toDisplayLine(this)}"
+    }
+
+    /** Encerra o vídeo em segundo plano (se houver) e devolve a área de controles ao tamanho normal. */
+    private fun stopIdlePlayback() {
+        if (idlePlayer == null) return
+        idlePlayer?.release()
+        idlePlayer = null
+        idlePlayerView.player = null
+        idleVideoContainer.visibility = View.GONE
     }
 
     private fun openCatalog(assetName: String, title: String) {
@@ -208,8 +240,8 @@ class MainActivity : AppCompatActivity() {
         editSongNumber.text?.clear()
         Toast.makeText(
             this,
-            getString(R.string.song_added_to_playlist, song.musica),
-            Toast.LENGTH_SHORT
+            "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
+            Toast.LENGTH_LONG
         ).show()
         updatePlaylistStatus()
     }

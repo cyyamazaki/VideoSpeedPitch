@@ -41,6 +41,7 @@ class SongAdapter(
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMusica: TextView = itemView.findViewById(R.id.tvMusica)
         private val tvArtista: TextView = itemView.findViewById(R.id.tvArtista)
+        private val tvTrecho: TextView = itemView.findViewById(R.id.tvTrecho)
         private val tvAvailability: TextView = itemView.findViewById(R.id.tvAvailability)
 
         fun bind(song: Song, availableCodes: Set<String>?) {
@@ -50,6 +51,12 @@ class SongAdapter(
                 song.artista,
                 song.codigo
             )
+            if (song.trecho.isNotBlank()) {
+                tvTrecho.visibility = View.VISIBLE
+                tvTrecho.text = song.trecho
+            } else {
+                tvTrecho.visibility = View.GONE
+            }
 
             if (availableCodes == null) {
                 tvAvailability.visibility = View.GONE

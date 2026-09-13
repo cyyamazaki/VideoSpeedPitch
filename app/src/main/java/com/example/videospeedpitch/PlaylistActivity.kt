@@ -77,7 +77,7 @@ class PlaylistActivity : AppCompatActivity() {
             PlaylistManager.dequeue()
             Toast.makeText(
                 this,
-                getString(R.string.error_video_not_found, firstSong.codigo),
+                getString(R.string.error_video_not_found, firstSong.musica, firstSong.artista, firstSong.codigo),
                 Toast.LENGTH_SHORT
             ).show()
             firstSong = PlaylistManager.peekAll().firstOrNull()
@@ -91,7 +91,7 @@ class PlaylistActivity : AppCompatActivity() {
 
         val playerIntent = Intent(this, PlayerActivity::class.java)
         playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
-        playerIntent.putExtra(PlayerActivity.EXTRA_TITLE, "${firstSong.artista} - ${firstSong.musica}")
+        PlayerActivity.putSongExtras(playerIntent, firstSong)
         playerIntent.putExtra(PlayerActivity.EXTRA_PLAYLIST_MODE, true)
         startActivity(playerIntent)
     }

@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#000000">
+    android:layout_height="match_parent">
 
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/playerView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        app:use_controller="true"
-        app:show_buffering="when_playing" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#000000">
 
-    <!-- Painel de controles compacto: fica oculto por padrão para o vídeo
+        <!-- use_controller=false: sem os controles nativos do ExoPlayer, que
+             escureceriam o vídeo (scrim atrás dos botões) e atrapalhariam a
+             leitura de legendas embutidas. Mostrar/ocultar nosso próprio
+             painel abaixo e o toque na tela são geridos manualmente pela
+             PlayerActivity. -->
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/playerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:use_controller="false"
+            app:show_buffering="when_playing" />
+
+        <!-- Painel de controles compacto: fica oculto por padrão para o vídeo
          ocupar o máximo de espaço possível (sem perder a proporção, já que
          o PlayerView continua com layout_weight="1" e ajusta a área do
          vídeo por conta própria). Só aparece ao tocar a tela, mover o
@@ -198,6 +207,79 @@
             android:text="@string/reset"
             style="?attr/borderlessButtonStyle" />
 
+        </LinearLayout>
+
     </LinearLayout>
 
-</LinearLayout>
+    <!-- Dados da música atual (sempre visível) e da próxima da playlist,
+         quando houver (mais discreta), além dos botões de pausar/avançar
+         (mesma discrição) — ficam no alto do vídeo, independente do painel
+         de controles estar visível ou não, e não escurecem o restante do
+         vídeo (só essa faixa fina no topo). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#66000000"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvCurrentSongInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvNextSongInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#B3FFFFFF"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnTogglePause"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:text="@string/pause_icon" />
+
+        <Button
+            android:id="@+id/btnSkipPlaylist"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            android:text="@string/skip_playlist_icon" />
+
+    </LinearLayout>
+
+</FrameLayout>

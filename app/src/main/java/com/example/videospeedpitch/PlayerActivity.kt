@@ -14,6 +14,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -42,12 +43,21 @@ import androidx.media3.ui.PlayerView
  * vídeo atual. Ao terminar o vídeo — ou, em modo playlist, ao esvaziar a
  * fila — a tela inicial é reaberta automaticamente.
  *
- * O painel de controles (velocidade, pitch e número da música) fica oculto
- * por padrão, para o vídeo ocupar o máximo de espaço possível, e só
- * aparece ao tocar a tela, mover o mouse sobre o vídeo ou digitar um
- * número — reaproveitando o próprio mecanismo de exibição/ocultação de
- * controles do ExoPlayer. Sempre que aparece, o foco vai automaticamente
- * para o final do campo "Número da música".
+ * O ExoPlayer roda sem seus controles nativos (`use_controller=false`): eles
+ * escureceriam o vídeo com um scrim atrás dos botões, atrapalhando a leitura
+ * de legendas embutidas. Em vez disso, a própria Activity mostra/oculta um
+ * painel próprio (velocidade, pitch e número da música), oculto por padrão
+ * para o vídeo ocupar o máximo de espaço possível, que aparece ao tocar a
+ * tela, mover o mouse sobre o vídeo ou digitar um número, e some sozinho
+ * após alguns segundos sem interação. Sempre que aparece, o foco vai
+ * automaticamente para o final do campo "Número da música".
+ *
+ * No alto do vídeo, independente do painel de controles, um overlay mostra
+ * sempre os dados da música atual (cantor, música, código e início da
+ * letra), de forma mais discreta os da próxima música da playlist (quando
+ * houver uma pendente na fila) e, com a mesma discrição, dois botões fora
+ * dos controles principais: pausar/retomar e avançar para a próxima música
+ * da playlist.
  *
  * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
  * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
@@ -61,8 +71,13 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_VIDEO_URI = "extra_video_uri"
         const val EXTRA_TITLE = "extra_title"
         const val EXTRA_PLAYLIST_MODE = "extra_playlist_mode"
+        const val EXTRA_SONG_ARTISTA = "extra_song_artista"
+        const val EXTRA_SONG_MUSICA = "extra_song_musica"
+        const val EXTRA_SONG_TRECHO = "extra_song_trecho"
+        const val EXTRA_SONG_CODIGO = "extra_song_codigo"
         private const val NEXT_SONG_WARNING_MS = 5000L
         private const val POLL_INTERVAL_MS = 500L
+        private const val CONTROLS_AUTO_HIDE_MS = 5000L
 
         private const val STATE_VIDEO_URI = "state_video_uri"
         private const val STATE_TITLE = "state_title"
@@ -71,6 +86,18 @@ class PlayerActivity : AppCompatActivity() {
         private const val STATE_PITCH = "state_pitch"
         private const val STATE_POSITION_MS = "state_position_ms"
         private const val STATE_PLAY_WHEN_READY = "state_play_when_ready"
+        private const val STATE_SONG_ARTISTA = "state_song_artista"
+        private const val STATE_SONG_MUSICA = "state_song_musica"
+        private const val STATE_SONG_TRECHO = "state_song_trecho"
+        private const val STATE_SONG_CODIGO = "state_song_codigo"
+
+        /** Anexa os dados completos da música (usados nos overlays do player) ao Intent. */
+        fun putSongExtras(intent: Intent, song: Song) {
+            intent.putExtra(EXTRA_SONG_ARTISTA, song.artista)
+            intent.putExtra(EXTRA_SONG_MUSICA, song.musica)
+            intent.putExtra(EXTRA_SONG_TRECHO, song.trecho)
+            intent.putExtra(EXTRA_SONG_CODIGO, song.codigo)
+        }
     }
 
     private var player: ExoPlayer? = null
@@ -80,6 +107,10 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var radioGroupSpeed: RadioGroup
     private lateinit var radioGroupPitch: RadioGroup
     private lateinit var editSongNumber: EditText
+    private lateinit var tvCurrentSongInfo: TextView
+    private lateinit var tvNextSongInfo: TextView
+    private lateinit var btnTogglePause: Button
+    private lateinit var btnSkipPlaylist: Button
 
     // Valores atuais (1.00x = normal)
     private var currentSpeed = 1.0f
@@ -87,6 +118,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private var currentUri: Uri? = null
     private var playlistMode = false
+
+    // Dados completos (cantor, música, trecho, código) da música atual, para
+    // o overlay no alto do vídeo. Pode ser nulo se o vídeo não veio
+    // acompanhado desses dados (nesse caso o overlay simplesmente não aparece).
+    private var currentSong: Song? = null
 
     // Consumidos uma única vez, na primeira playVideo() após onCreate (para
     // restaurar posição/estado de reprodução ao recriar a Activity, p.ex.
@@ -104,6 +140,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // Como o player roda sem controles nativos, o painel de controles
+    // próprio (velocidade/pitch/número) precisa do seu próprio temporizador
+    // de ocultação automática.
+    private val hideControlsRunnable = Runnable { hideControlsPanel() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
@@ -114,6 +155,10 @@ class PlayerActivity : AppCompatActivity() {
         radioGroupSpeed = findViewById(R.id.radioGroupSpeed)
         radioGroupPitch = findViewById(R.id.radioGroupPitch)
         editSongNumber = findViewById(R.id.editPlayerSongNumber)
+        tvCurrentSongInfo = findViewById(R.id.tvCurrentSongInfo)
+        tvNextSongInfo = findViewById(R.id.tvNextSongInfo)
+        btnTogglePause = findViewById(R.id.btnTogglePause)
+        btnSkipPlaylist = findViewById(R.id.btnSkipPlaylist)
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
@@ -126,6 +171,8 @@ class PlayerActivity : AppCompatActivity() {
         currentPitch = savedInstanceState?.getFloat(STATE_PITCH) ?: 1.0f
         pendingSeekPositionMs = savedInstanceState?.getLong(STATE_POSITION_MS) ?: 0L
         pendingPlayWhenReady = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
+        currentSong = readSongExtras(savedInstanceState)
+        updateCurrentSongOverlay()
 
         btnReset.setOnClickListener {
             radioGroupSpeed.check(R.id.radioSpeed100)
@@ -142,6 +189,9 @@ class PlayerActivity : AppCompatActivity() {
         radioGroupPitch.check(pitchToRadioId(currentPitch))
         setupSongNumberEntry(btnAddToPlaylist)
         setupControlsVisibility()
+
+        btnTogglePause.setOnClickListener { togglePause() }
+        btnSkipPlaylist.setOnClickListener { skipToNextInPlaylist() }
 
         val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
             ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
@@ -163,6 +213,84 @@ class PlayerActivity : AppCompatActivity() {
         outState.putFloat(STATE_PITCH, currentPitch)
         outState.putLong(STATE_POSITION_MS, player?.currentPosition ?: 0L)
         outState.putBoolean(STATE_PLAY_WHEN_READY, player?.playWhenReady ?: true)
+        currentSong?.let { song ->
+            outState.putString(STATE_SONG_ARTISTA, song.artista)
+            outState.putString(STATE_SONG_MUSICA, song.musica)
+            outState.putString(STATE_SONG_TRECHO, song.trecho)
+            outState.putString(STATE_SONG_CODIGO, song.codigo)
+        }
+    }
+
+    /** Lê os dados da música do savedInstanceState (rotação) ou, na primeira vez, do Intent. */
+    private fun readSongExtras(savedInstanceState: Bundle?): Song? {
+        val artista = savedInstanceState?.getString(STATE_SONG_ARTISTA)
+            ?: intent.getStringExtra(EXTRA_SONG_ARTISTA)
+        val musica = savedInstanceState?.getString(STATE_SONG_MUSICA)
+            ?: intent.getStringExtra(EXTRA_SONG_MUSICA)
+        if (artista == null || musica == null) return null
+        val trecho = savedInstanceState?.getString(STATE_SONG_TRECHO)
+            ?: intent.getStringExtra(EXTRA_SONG_TRECHO)
+            ?: ""
+        val codigo = savedInstanceState?.getString(STATE_SONG_CODIGO)
+            ?: intent.getStringExtra(EXTRA_SONG_CODIGO)
+            ?: ""
+        return Song(artista = artista, codigo = codigo, musica = musica, trecho = trecho)
+    }
+
+    /** Mostra, sempre que houver, os dados da música atual no alto do vídeo. */
+    private fun updateCurrentSongOverlay() {
+        val song = currentSong
+        if (song == null) {
+            tvCurrentSongInfo.visibility = View.GONE
+        } else {
+            tvCurrentSongInfo.visibility = View.VISIBLE
+            tvCurrentSongInfo.text = song.toDisplayLine(this)
+        }
+    }
+
+    /**
+     * Mostra, de forma discreta, os dados da próxima música da playlist logo
+     * abaixo da atual, junto com o botão de avançar para ela — só quando há
+     * uma fila com item pendente.
+     */
+    private fun updateNextSongOverlay() {
+        val next = PlaylistManager.peekAll().firstOrNull()
+        if (next == null) {
+            tvNextSongInfo.visibility = View.GONE
+            btnSkipPlaylist.visibility = View.GONE
+        } else {
+            tvNextSongInfo.visibility = View.VISIBLE
+            tvNextSongInfo.text = getString(
+                R.string.next_song_overlay_format,
+                next.musica,
+                next.artista,
+                next.codigo
+            )
+            btnSkipPlaylist.visibility = View.VISIBLE
+        }
+    }
+
+    /** Alterna pausar/retomar o vídeo atual — único jeito de pausar, já que não há controles nativos. */
+    private fun togglePause() {
+        val exoPlayer = player ?: return
+        exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+        updatePauseButtonIcon()
+    }
+
+    private fun updatePauseButtonIcon() {
+        val isPlaying = player?.playWhenReady ?: true
+        btnTogglePause.text = getString(if (isPlaying) R.string.pause_icon else R.string.play_icon)
+    }
+
+    /**
+     * Encerra o vídeo atual e avança imediatamente para a próxima música da
+     * playlist, sem esperar o fim do vídeo — passa a valer o modo playlist
+     * dali em diante (avanço automático e aviso dos 5 segundos).
+     */
+    private fun skipToNextInPlaylist() {
+        if (PlaylistManager.isEmpty()) return
+        playlistMode = true
+        playNextFromPlaylist()
     }
 
     private fun speedToRadioId(speed: Float) = when (speed) {
@@ -220,44 +348,58 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
         // Digitar mantém o painel visível (reinicia o temporizador de
-        // ocultação automática do ExoPlayer) em vez de deixá-lo sumir
-        // enquanto o usuário ainda está preenchendo o número.
+        // ocultação automática) em vez de deixá-lo sumir enquanto o usuário
+        // ainda está preenchendo o número.
         editSongNumber.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                playerView.showController()
+                showControlsPanel()
             }
         })
         editSongNumber.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) playerView.showController()
+            if (hasFocus) showControlsPanel()
         }
     }
 
     /**
-     * Liga a exibição do painel de controles ao próprio mecanismo de
-     * mostrar/ocultar do ExoPlayer: tocar a tela já alterna os controles
-     * nativos do player, e aqui só espelhamos essa visibilidade no nosso
-     * painel (velocidade/pitch/número). Movimento do mouse (hover, comum em
-     * telas com ponteiro) também revela os controles. Sempre que o painel
-     * aparece, o foco vai para o final do campo "Número da música".
+     * Como o player roda sem controles nativos (`use_controller=false`, para
+     * não escurecer o vídeo nem atrapalhar legendas), a própria Activity
+     * decide quando mostrar/ocultar o painel: toque na tela alterna
+     * (mostra/some), movimento do mouse (hover, comum em telas com
+     * ponteiro) sempre revela, e ele some sozinho após alguns segundos sem
+     * interação. Sempre que aparece, o foco vai para o final do campo
+     * "Número da música".
      */
     private fun setupControlsVisibility() {
-        playerView.setControllerVisibilityListener(
-            PlayerView.ControllerVisibilityListener { visibility ->
-                controlsPanel.visibility = visibility
-                if (visibility == View.VISIBLE) {
-                    controlsPanel.post { focusSongNumberAtEnd() }
-                }
-            }
-        )
+        playerView.setOnClickListener { toggleControlsPanel() }
 
         playerView.setOnHoverListener { _, event ->
             when (event.action) {
-                MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE -> playerView.showController()
+                MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE -> showControlsPanel()
             }
             false
         }
+    }
+
+    private fun toggleControlsPanel() {
+        if (controlsPanel.visibility == View.VISIBLE) {
+            hideControlsPanel()
+        } else {
+            showControlsPanel()
+        }
+    }
+
+    private fun showControlsPanel() {
+        controlsPanel.visibility = View.VISIBLE
+        controlsPanel.post { focusSongNumberAtEnd() }
+        handler.removeCallbacks(hideControlsRunnable)
+        handler.postDelayed(hideControlsRunnable, CONTROLS_AUTO_HIDE_MS)
+    }
+
+    private fun hideControlsPanel() {
+        controlsPanel.visibility = View.GONE
+        handler.removeCallbacks(hideControlsRunnable)
     }
 
     /**
@@ -295,7 +437,7 @@ class PlayerActivity : AppCompatActivity() {
         val isDigitKey = event.keyCode in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 ||
             event.keyCode in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9
         if (event.action == KeyEvent.ACTION_DOWN && isDigitKey) {
-            playerView.showController()
+            showControlsPanel()
             if (!editSongNumber.hasFocus()) {
                 focusSongNumberAtEnd()
             }
@@ -323,12 +465,13 @@ class PlayerActivity : AppCompatActivity() {
         // que o aviso de 5 segundos considere-a mesmo que já estejamos perto
         // do fim do vídeo atual.
         if (wasEmpty) warnedForCurrentVideo = false
+        updateNextSongOverlay()
 
         editSongNumber.text?.clear()
         Toast.makeText(
             this,
-            getString(R.string.song_added_to_playlist, song.musica),
-            Toast.LENGTH_SHORT
+            "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
+            Toast.LENGTH_LONG
         ).show()
     }
 
@@ -407,6 +550,9 @@ class PlayerActivity : AppCompatActivity() {
 
         player = exoPlayer
 
+        updateNextSongOverlay()
+        updatePauseButtonIcon()
+
         handler.removeCallbacks(nextSongWarningPoller)
         handler.post(nextSongWarningPoller)
     }
@@ -428,7 +574,7 @@ class PlayerActivity : AppCompatActivity() {
         while (nextSong != null && videoUri == null) {
             Toast.makeText(
                 this,
-                getString(R.string.error_video_not_found, nextSong.codigo),
+                getString(R.string.error_video_not_found, nextSong.musica, nextSong.artista, nextSong.codigo),
                 Toast.LENGTH_SHORT
             ).show()
             nextSong = PlaylistManager.dequeue()
@@ -442,7 +588,9 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         currentUri = videoUri
+        currentSong = nextSong
         title = "${nextSong.artista} - ${nextSong.musica}"
+        updateCurrentSongOverlay()
         playVideo(videoUri)
     }
 
@@ -456,6 +604,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun releasePlayer() {
         handler.removeCallbacks(nextSongWarningPoller)
+        handler.removeCallbacks(hideControlsRunnable)
         player?.release()
         player = null
     }

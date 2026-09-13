@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Video Speed Pitch</string>
-    <string name="choose_video">Escolher vídeo avulso (arquivo)</string>
     <string name="reset">Redefinir</string>
 
     <!-- PlayerActivity: velocidade e tom (botões de seleção) -->
@@ -17,17 +16,15 @@
     <string name="pitch_110">110%</string>
 
     <!-- Hub / MainActivity -->
-    <string name="step1_title">1. Pasta onde estão os vídeos</string>
+    <string name="step1_title">3. Pasta onde estão os vídeos</string>
     <string name="step2_title">2. Escolha o catálogo</string>
     <string name="step2_subtitle">Cada catálogo é pesquisado separadamente, nunca junto com o outro.</string>
-    <string name="step3_title">Ou, se preferir</string>
-    <string name="step4_title">Playlist (fila de reprodução)</string>
+    <string name="step4_title">1. Escolha por número (playlist)</string>
     <string name="step4_subtitle">Digite o número (código) da música e adicione à fila. Elas tocam automaticamente uma após a outra, na ordem em que foram adicionadas.</string>
     <string name="select_folder">Selecionar pasta de vídeos</string>
     <string name="folder_selected_ok">Pasta de vídeos selecionada com sucesso.</string>
     <string name="folder_selected_status">Pasta selecionada: %s</string>
     <string name="folder_not_selected_status">Nenhuma pasta selecionada ainda. Os vídeos dos catálogos precisam estar em uma pasta local, nomeados com o código da música (ex.: 18483.mp4).</string>
-    <string name="idle_random_video_title">Reprodução automática</string>
 
     <!-- Catálogos -->
     <string name="catalog_karaoke_title">Catálogo Karaokê</string>
@@ -42,6 +39,10 @@
     <string name="song_available">✓ Disponível</string>
     <string name="song_unavailable">✗ Sem vídeo</string>
 
+    <!-- Exibição de dados da música (lista, overlays do player, toasts) -->
+    <string name="song_display_with_trecho">%1$s — %2$s (nº %3$s)\n%4$s</string>
+    <string name="song_display_no_trecho">%1$s — %2$s (nº %3$s)</string>
+
     <!-- Playlist (fila FIFO) -->
     <string name="song_number_hint">Número da música</string>
     <string name="add_to_playlist">Adicionar</string>
@@ -52,11 +53,41 @@
     <string name="clear_playlist">Limpar playlist</string>
     <string name="playlist_finished">Playlist concluída.</string>
     <string name="next_song_warning">"%1$s" — %2$s (nº %3$s) começa em 5 segundos.</string>
+    <string name="next_song_overlay_format">A seguir: %1$s — %2$s (nº %3$s)</string>
+    <string name="pause_icon">⏸</string>
+    <string name="play_icon">▶</string>
+    <string name="skip_playlist_icon">⏭</string>
     <string name="remove">Remover</string>
-    <string name="song_added_to_playlist">\"%s\" adicionada à playlist.</string>
+    <string name="toast_song_added_prefix">Adicionada à playlist:</string>
+    <string name="toast_song_now_playing_prefix">Tocando:</string>
+    <string name="idle_now_playing_prefix">Tocando agora:</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
-    <string name="error_video_not_found">Não foi encontrado nenhum arquivo de vídeo com o código %s na pasta selecionada.</string>
+    <string name="error_video_not_found">Vídeo não encontrado para \"%1$s\" — %2$s (nº %3$s).</string>
     <string name="error_song_number_not_found">Nenhuma música encontrada com o número %s.</string>
+
+    <!-- Sobre / histórico -->
+    <string name="about">Sobre</string>
+    <string name="about_title">Sobre / Histórico</string>
+    <string name="about_version_format">Versão %s</string>
+    <string name="about_history_title">Histórico de implementações</string>
+
+    <string-array name="about_history_entries">
+        <item>Tela inicial reordenada: escolha por número em primeiro lugar, pasta de vídeos por último, com o campo do número sempre em foco (pronto para digitar).</item>
+        <item>Tela "Sobre", com este histórico de implementações, acessível pela tela inicial.</item>
+        <item>Player sem os controles nativos do ExoPlayer (evita escurecer o vídeo e atrapalhar legendas); painel próprio de velocidade/tom oculto por padrão, reaparecendo ao tocar a tela, mover o mouse ou digitar um número, com ocultação automática. No alto do vídeo, um overlay discreto sempre mostra a música atual, a próxima da playlist (quando houver) e botões de pausar/retomar e avançar a playlist.</item>
+        <item>Dados da música — cantor, título, código e início da letra — exibidos de forma consistente nas listas, nos overlays do player e da tela inicial, e em toasts de confirmação ao escolher ou adicionar uma música (com aviso também quando falha).</item>
+        <item>Vídeo aleatório da pasta selecionada tocando continuamente e sem espera, embutido na própria tela inicial; some apenas ao abrir um catálogo ou a playlist.</item>
+        <item>Removida a opção de escolher um vídeo avulso por arquivo (fora dos catálogos).</item>
+        <item>Rotação de tela: o player salva e restaura vídeo, velocidade, tom e posição de reprodução ao girar a tela.</item>
+        <item>Catálogo com índice de arquivos da pasta em cache em disco (abre mais rápido) e indicador visual (✓/✗) de quais músicas já têm vídeo disponível.</item>
+        <item>Ao terminar um vídeo ou esvaziar a playlist, o app volta automaticamente para a tela inicial.</item>
+        <item>Catálogo passou a listar todas as músicas em memória por padrão, ordenáveis por cantor ou por música, continuando filtrável por busca.</item>
+        <item>Playlist (fila FIFO): adicionar músicas pelo número, ver/remover/tocar a fila, com avanço automático e aviso 5 segundos antes da próxima música.</item>
+        <item>A pasta de vídeos selecionada passou a ficar salva de forma persistente entre execuções do app.</item>
+        <item>Velocidade limitada a 90%/95%/100% e tom de 90% a 110% em passos de 5%, escolhidos por botões em vez de barras deslizantes.</item>
+        <item>Busca do catálogo passou a atualizar a lista só ao pressionar Enter (corrigindo a lentidão ao digitar) e passou a buscar também pelo número da música.</item>
+        <item>Versão inicial: catálogos de Karaokê e Japonês, seleção da pasta de vídeos e player com controle independente de velocidade e tom.</item>
+    </string-array>
 </resources>

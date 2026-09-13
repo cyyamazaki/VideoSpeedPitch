@@ -165,15 +165,21 @@ class CatalogActivity : AppCompatActivity() {
         if (videoUri == null) {
             Toast.makeText(
                 this,
-                getString(R.string.error_video_not_found, song.codigo),
+                getString(R.string.error_video_not_found, song.musica, song.artista, song.codigo),
                 Toast.LENGTH_LONG
             ).show()
             return
         }
 
+        Toast.makeText(
+            this,
+            "${getString(R.string.toast_song_now_playing_prefix)}\n${song.toDisplayLine(this)}",
+            Toast.LENGTH_SHORT
+        ).show()
+
         val playerIntent = Intent(this, PlayerActivity::class.java)
         playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
-        playerIntent.putExtra(PlayerActivity.EXTRA_TITLE, "${song.artista} - ${song.musica}")
+        PlayerActivity.putSongExtras(playerIntent, song)
         startActivity(playerIntent)
     }
 }
