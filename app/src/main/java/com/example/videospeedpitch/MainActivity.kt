@@ -44,9 +44,10 @@ import androidx.media3.ui.PlayerView
  * acessível (rolável) logo abaixo — nenhuma interação nesta tela
  * interrompe o vídeo. Ele só é escondido ao navegar para uma tela de
  * escolha em lista (catálogo ou playlist), voltando a tocar (outro vídeo
- * aleatório) assim que a tela inicial volta a ficar em primeiro plano. Um
- * botão discreto no alto do vídeo permite trocar para outro aleatório a
- * qualquer momento, sem esperar o atual terminar.
+ * aleatório) assim que a tela inicial volta a ficar em primeiro plano.
+ * Botões discretos no alto do vídeo permitem trocar para outro aleatório a
+ * qualquer momento (sem esperar o atual terminar) e buscar a música atual
+ * no YouTube (ver [YouTubeSearchHelper]).
  */
 class MainActivity : AppCompatActivity() {
 
@@ -57,9 +58,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var idlePlayerView: PlayerView
     private lateinit var tvIdleSongInfo: TextView
     private lateinit var btnShuffleIdleVideo: Button
+    private lateinit var btnSearchYoutubeIdle: Button
 
     private var idlePlayer: ExoPlayer? = null
     private var idleFileIndex: Map<String, Uri> = emptyMap()
+    private var currentIdleSong: Song? = null
 
     private val pickFolderLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -97,6 +100,8 @@ class MainActivity : AppCompatActivity() {
         tvIdleSongInfo = findViewById(R.id.tvIdleSongInfo)
         btnShuffleIdleVideo = findViewById(R.id.btnShuffleIdleVideo)
         btnShuffleIdleVideo.setOnClickListener { playNextIdleVideo() }
+        btnSearchYoutubeIdle = findViewById(R.id.btnSearchYoutubeIdle)
+        btnSearchYoutubeIdle.setOnClickListener { searchIdleSongOnYoutube() }
 
         val btnSelectFolder: Button = findViewById(R.id.btnSelectFolder)
         val btnCatalogKaraoke: Button = findViewById(R.id.btnCatalogKaraoke)
@@ -206,12 +211,23 @@ class MainActivity : AppCompatActivity() {
     /** Mostra, sobre o vídeo, os dados (cantor, música, início da letra) do vídeo aleatório atual. */
     private fun updateIdleSongInfo(codigo: String) {
         val song = CatalogRepository.findSongByCodigo(this, codigo)
+        currentIdleSong = song
         if (song == null) {
             tvIdleSongInfo.visibility = View.GONE
             return
         }
         tvIdleSongInfo.visibility = View.VISIBLE
         tvIdleSongInfo.text = "${getString(R.string.idle_now_playing_prefix)}\n${song.toDisplayLine(this)}"
+    }
+
+    /** Busca a música do vídeo aleatório atual no YouTube, ou avisa por toast se não achar. */
+    private fun searchIdleSongOnYoutube() {
+        val song = currentIdleSong
+        if (song == null) {
+            Toast.makeText(this, R.string.error_song_info_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        YouTubeSearchHelper.searchAndOpen(this, song)
     }
 
     /** Encerra o vídeo em segundo plano (se houver) e devolve a área de controles ao tamanho normal. */

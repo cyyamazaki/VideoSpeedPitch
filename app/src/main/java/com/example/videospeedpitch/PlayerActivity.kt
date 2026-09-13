@@ -58,8 +58,9 @@ import androidx.media3.ui.PlayerView
  * houver uma pendente na fila) e, com a mesma discrição, botões fora dos
  * controles principais: pausar/retomar, avançar para a próxima música da
  * playlist, finalizar a playlist (só enquanto o modo playlist estiver
- * ativo; esvazia a fila e desliga o avanço automático) e voltar para a
- * tela inicial a qualquer momento.
+ * ativo; esvazia a fila e desliga o avanço automático), voltar para a
+ * tela inicial a qualquer momento e buscar a música atual no YouTube
+ * (ver [YouTubeSearchHelper]).
  *
  * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
  * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
@@ -115,6 +116,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var btnSkipPlaylist: Button
     private lateinit var btnEndPlaylist: Button
     private lateinit var btnGoHome: Button
+    private lateinit var btnSearchYoutube: Button
 
     // Valores atuais (1.00x = normal)
     private var currentSpeed = 1.0f
@@ -165,6 +167,7 @@ class PlayerActivity : AppCompatActivity() {
         btnSkipPlaylist = findViewById(R.id.btnSkipPlaylist)
         btnEndPlaylist = findViewById(R.id.btnEndPlaylist)
         btnGoHome = findViewById(R.id.btnGoHome)
+        btnSearchYoutube = findViewById(R.id.btnSearchYoutube)
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
@@ -201,6 +204,7 @@ class PlayerActivity : AppCompatActivity() {
         btnSkipPlaylist.setOnClickListener { skipToNextInPlaylist() }
         btnEndPlaylist.setOnClickListener { endPlaylist() }
         btnGoHome.setOnClickListener { returnToHome() }
+        btnSearchYoutube.setOnClickListener { searchCurrentSongOnYoutube() }
 
         val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
             ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
@@ -623,6 +627,16 @@ class PlayerActivity : AppCompatActivity() {
         title = "${nextSong.artista} - ${nextSong.musica}"
         updateCurrentSongOverlay()
         playVideo(videoUri)
+    }
+
+    /** Busca a música atual no YouTube e abre o primeiro resultado, ou avisa por toast se não achar. */
+    private fun searchCurrentSongOnYoutube() {
+        val song = currentSong
+        if (song == null) {
+            Toast.makeText(this, R.string.error_song_info_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        YouTubeSearchHelper.searchAndOpen(this, song)
     }
 
     /** Fecha o player e volta para a tela inicial, limpando o restante da pilha. */

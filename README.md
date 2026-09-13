@@ -20,6 +20,10 @@ App Android para karaokê que:
   não escurecer o vídeo nem atrapalhar a leitura de legendas embutidas.
 - Na tela inicial, toca continuamente um **vídeo aleatório embutido** da pasta
   selecionada enquanto você não abre um catálogo ou a playlist.
+- Um botão discreto (🔎), tanto no player quanto no vídeo aleatório da tela
+  inicial, **busca a música atual no YouTube** e abre o primeiro resultado
+  encontrado, ou avisa por toast se não achar. É a única funcionalidade do
+  app que precisa de internet (as demais funcionam totalmente offline).
 
 ## Como a busca por catálogo funciona
 
@@ -130,6 +134,7 @@ VideoSpeedPitch/
         │   ├── CatalogRepository.kt    # lê os JSONs e indexa (com cache em disco) a pasta de vídeos
         │   ├── SongAdapter.kt          # RecyclerView da lista de um catálogo
         │   ├── PlaylistAdapter.kt      # RecyclerView da fila da playlist
+        │   ├── YouTubeSearchHelper.kt  # busca o vídeo de uma música no YouTube (sem API key)
         │   ├── Song.kt                 # modelo de dados de uma música + formatação para exibição
         │   └── Prefs.kt                # chaves de SharedPreferences
         └── res/

@@ -67,11 +67,14 @@
     <string name="shuffle_icon">🔀</string>
     <string name="refresh_catalogs_button">Atualizar catálogos (vídeos disponíveis)</string>
     <string name="catalogs_refreshed_toast">Catálogos atualizados: %d vídeo(s) disponível(is) na pasta.</string>
+    <string name="youtube_search_icon">🔎</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
     <string name="error_video_not_found">Vídeo não encontrado para \"%1$s\" — %2$s (nº %3$s).</string>
     <string name="error_song_number_not_found">Nenhuma música encontrada com o número %s.</string>
+    <string name="youtube_not_found">Vídeo não encontrado no YouTube para \"%1$s\" — %2$s.</string>
+    <string name="error_song_info_unavailable">Não foi possível identificar a música atual.</string>
 
     <!-- Sobre / histórico -->
     <string name="about">Sobre</string>
@@ -80,6 +83,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Botão discreto (🔎) no vídeo do player e no vídeo aleatório da tela inicial para buscar a música atual no YouTube: abre o primeiro resultado encontrado, ou avisa por toast se não achar.</item>
         <item>Barra de rolagem rápida na lista dos catálogos: arraste na borda direita para pular direto para qualquer ponto da lista, com uma bolha mostrando a letra inicial da posição atual.</item>
         <item>Ao sair do app sem fechá-lo (ex.: botão Início) durante um vídeo, a posição e se estava pausado ou tocando são salvos e retomados exatamente de onde parou ao voltar.</item>
         <item>Botão discreto no alto do vídeo para voltar à tela inicial a qualquer momento, sem esperar o vídeo ou a playlist terminarem.</item>
