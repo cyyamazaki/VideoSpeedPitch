@@ -2,7 +2,7 @@
 
 App Android de karaokê (nome do projeto/repositório: VideoSpeedPitch). Ao
 abrir, mostra uma tela de splash com o nome do app, a versão e o mês/ano de
-lançamento sobre uma foto, antes de ir para a tela inicial de verdade.
+lançamento sobre uma ilustração, antes de ir para a tela inicial de verdade.
 
 O app:
 
@@ -198,7 +198,7 @@ VideoSpeedPitch/
             │   ├── item_playlist.xml       # item da fila
             │   ├── activity_player.xml     # player
             │   └── activity_about.xml      # tela "Sobre"
-            ├── drawable-nodpi/splash_singer.jpg   # foto de fundo do splash (ver Créditos)
+            ├── drawable-nodpi/splash_singer.jpg   # ilustração de fundo do splash (ver Créditos)
             └── values/{strings.xml, colors.xml, themes.xml}
 ```
 
@@ -227,8 +227,6 @@ VideoSpeedPitch/
 
 ## Créditos
 
-Foto de fundo da tela de abertura (`app/src/main/res/drawable-nodpi/splash_singer.jpg`):
-["Woman in white tank dress singing"](https://unsplash.com/photos/woman-in-white-tank-dress-singing-J-VgIkj6FaY)
-por [Wenhao Ruan](https://unsplash.com/@wenhao_ruan) no Unsplash, sob a
-[Licença Unsplash](https://unsplash.com/license) (uso livre, atribuição
-opcional).
+Ilustração de fundo da tela de abertura
+(`app/src/main/res/drawable-nodpi/splash_singer.jpg`) fornecida pelo autor
+do projeto.

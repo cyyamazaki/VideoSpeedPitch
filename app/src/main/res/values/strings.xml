@@ -94,7 +94,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
-        <item>Tela de abertura (splash), com nome, versão e mês/ano sobre uma foto, antes de abrir a tela inicial.</item>
+        <item>Tela de abertura (splash), com nome, versão e mês/ano sobre uma ilustração, antes de abrir a tela inicial.</item>
         <item>App renomeado para "YamazakiOke"; primeiro build de release assinado (versão 2.0), com o histórico completo até aqui.</item>
         <item>Corrigido: o botão de voltar à tela inicial no player agora respeita "escolher no catálogo" quando ativado (abre o catálogo em vez de simplesmente sair), e escolher uma música do catálogo sem vídeo na pasta já dispara a busca de um karaokê dela no YouTube.</item>
         <item>Botão discreto (➕) no vídeo aleatório da tela inicial para adicionar a música atual à playlist, sem interromper o vídeo que já está tocando.</item>

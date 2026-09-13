@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Tela de abertura do app: nome, versão e mês/ano de lançamento sobre uma
- * foto de fundo, mostrada brevemente antes de abrir a tela inicial de
+ * ilustração de fundo, mostrada brevemente antes de abrir a tela inicial de
  * verdade ([MainActivity]). É esta Activity — não a [MainActivity] — que é
  * o launcher no [AndroidManifest].
  */
