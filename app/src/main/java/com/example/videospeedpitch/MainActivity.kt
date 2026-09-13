@@ -222,6 +222,11 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    /**
+     * Adiciona a música digitada à playlist. Se a fila estava vazia (esta é
+     * a primeira música), toca-a imediatamente em vez de só enfileirar —
+     * mesmo comportamento de escolher uma música direto no catálogo.
+     */
     private fun addSongToPlaylist() {
         val codigo = editSongNumber.text?.toString()?.trim().orEmpty()
         if (codigo.isEmpty()) return
@@ -236,14 +241,62 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val wasEmpty = PlaylistManager.isEmpty()
         PlaylistManager.enqueue(song)
         editSongNumber.text?.clear()
-        Toast.makeText(
-            this,
-            "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
-            Toast.LENGTH_LONG
-        ).show()
+
+        if (wasEmpty) {
+            playFirstFromPlaylist()
+        } else {
+            Toast.makeText(
+                this,
+                "${getString(R.string.toast_song_added_prefix)}\n${song.toDisplayLine(this)}",
+                Toast.LENGTH_LONG
+            ).show()
+            updatePlaylistStatus()
+        }
+    }
+
+    /**
+     * Toca a primeira música da fila imediatamente (usada assim que ela é
+     * adicionada com a fila vazia) — mesmo fluxo de "Tocar playlist" na
+     * tela de playlist, entrando em modo playlist a partir daí.
+     */
+    private fun playFirstFromPlaylist() {
+        val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
+            .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
+        if (treeUriString == null) {
+            Toast.makeText(this, R.string.error_no_folder_selected, Toast.LENGTH_LONG).show()
+            updatePlaylistStatus()
+            return
+        }
+
+        val treeUri = Uri.parse(treeUriString)
+        val index = CatalogRepository.getFileIndex(this, treeUri)
+
+        // Descarta, do início da fila, códigos sem arquivo correspondente.
+        var firstSong = PlaylistManager.peekAll().firstOrNull()
+        while (firstSong != null && !index.containsKey(firstSong.codigo)) {
+            PlaylistManager.dequeue()
+            Toast.makeText(
+                this,
+                getString(R.string.error_video_not_found, firstSong.musica, firstSong.artista, firstSong.codigo),
+                Toast.LENGTH_SHORT
+            ).show()
+            firstSong = PlaylistManager.peekAll().firstOrNull()
+        }
         updatePlaylistStatus()
+
+        if (firstSong == null) return
+        val videoUri = index[firstSong.codigo] ?: return
+        PlaylistManager.dequeue()
+        updatePlaylistStatus()
+
+        val playerIntent = Intent(this, PlayerActivity::class.java)
+        playerIntent.putExtra(PlayerActivity.EXTRA_VIDEO_URI, videoUri)
+        PlayerActivity.putSongExtras(playerIntent, firstSong)
+        playerIntent.putExtra(PlayerActivity.EXTRA_PLAYLIST_MODE, true)
+        startActivity(playerIntent)
     }
 
     private fun updatePlaylistStatus() {
