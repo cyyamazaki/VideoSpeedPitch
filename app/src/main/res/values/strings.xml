@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Video Speed Pitch</string>
+    <string name="choose_video">Escolher vídeo</string>
+    <string name="speed_label">Velocidade: %.2fx</string>
+    <string name="pitch_label">Tom: %.2fx</string>
+    <string name="reset">Redefinir</string>
+</resources>
