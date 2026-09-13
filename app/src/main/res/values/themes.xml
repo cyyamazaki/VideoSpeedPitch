@@ -4,4 +4,12 @@
         <item name="colorPrimaryDark">#0D47A1</item>
         <item name="colorAccent">#1976D2</item>
     </style>
+
+    <!-- Barra de status/navegação escuras e translúcidas, para a foto de
+         fundo do splash ocupar a tela toda, de ponta a ponta. -->
+    <style name="Theme.VideoSpeedPitch.Splash" parent="Theme.VideoSpeedPitch">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">#66000000</item>
+        <item name="android:navigationBarColor">#66000000</item>
+    </style>
 </resources>

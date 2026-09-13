@@ -2,6 +2,10 @@
     <string name="app_name">YamazakiOke</string>
     <string name="reset">Redefinir</string>
 
+    <!-- Tela de abertura (splash) -->
+    <string name="splash_version_info">Versão %1$s · %2$s</string>
+    <string name="splash_build_date">Setembro de 2026</string>
+
     <!-- PlayerActivity: velocidade e tom (botões de seleção) -->
     <string name="speed_title">Velocidade</string>
     <string name="speed_90">90%</string>
@@ -90,6 +94,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Tela de abertura (splash), com nome, versão e mês/ano sobre uma foto, antes de abrir a tela inicial.</item>
         <item>App renomeado para "YamazakiOke"; primeiro build de release assinado (versão 2.0), com o histórico completo até aqui.</item>
         <item>Corrigido: o botão de voltar à tela inicial no player agora respeita "escolher no catálogo" quando ativado (abre o catálogo em vez de simplesmente sair), e escolher uma música do catálogo sem vídeo na pasta já dispara a busca de um karaokê dela no YouTube.</item>
         <item>Botão discreto (➕) no vídeo aleatório da tela inicial para adicionar a música atual à playlist, sem interromper o vídeo que já está tocando.</item>

@@ -1,6 +1,10 @@
 # YamazakiOke
 
-App Android de karaokê (nome do projeto/repositório: VideoSpeedPitch) que:
+App Android de karaokê (nome do projeto/repositório: VideoSpeedPitch). Ao
+abrir, mostra uma tela de splash com o nome do app, a versão e o mês/ano de
+lançamento sobre uma foto, antes de ir para a tela inicial de verdade.
+
+O app:
 
 - Mantém **dois catálogos separados** (Karaokê e Japonês), cada um listado por
   completo em memória e **ordenável por cantor ou por música**, com busca (por
@@ -170,6 +174,7 @@ VideoSpeedPitch/
         │   ├── catalogo_karaoke.json   # ~12.900 músicas
         │   └── catalogo_japones.json   # ~1.550 músicas
         ├── java/com/example/videospeedpitch/
+        │   ├── SplashActivity.kt       # tela de abertura (launcher): nome, versão, mês/ano
         │   ├── MainActivity.kt         # tela inicial (hub): número, catálogos, pasta, vídeo aleatório
         │   ├── CatalogActivity.kt      # lista completa + busca + ordenação de um catálogo
         │   ├── PlaylistActivity.kt     # ver/tocar/remover a fila da playlist
@@ -185,6 +190,7 @@ VideoSpeedPitch/
         │   └── Prefs.kt                # chaves de SharedPreferences
         └── res/
             ├── layout/
+            │   ├── activity_splash.xml     # tela de abertura
             │   ├── activity_main.xml       # hub
             │   ├── activity_catalog.xml    # lista/busca/ordenação
             │   ├── item_song.xml           # item da lista de catálogo
@@ -192,6 +198,7 @@ VideoSpeedPitch/
             │   ├── item_playlist.xml       # item da fila
             │   ├── activity_player.xml     # player
             │   └── activity_about.xml      # tela "Sobre"
+            ├── drawable-nodpi/splash_singer.jpg   # foto de fundo do splash (ver Créditos)
             └── values/{strings.xml, colors.xml, themes.xml}
 ```
 
@@ -217,3 +224,11 @@ VideoSpeedPitch/
 - Salvar a última velocidade/tom usados como padrão para o próximo vídeo.
 - Reordenar itens dentro da fila da playlist (hoje só dá para remover).
 - Editar/atualizar os catálogos (JSON) sem precisar gerar um novo APK.
+
+## Créditos
+
+Foto de fundo da tela de abertura (`app/src/main/res/drawable-nodpi/splash_singer.jpg`):
+["Woman in white tank dress singing"](https://unsplash.com/photos/woman-in-white-tank-dress-singing-J-VgIkj6FaY)
+por [Wenhao Ruan](https://unsplash.com/@wenhao_ruan) no Unsplash, sob a
+[Licença Unsplash](https://unsplash.com/license) (uso livre, atribuição
+opcional).
