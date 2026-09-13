@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         val btnCatalogJapones: Button = findViewById(R.id.btnCatalogJapones)
         val btnAddToPlaylist: Button = findViewById(R.id.btnAddToPlaylist)
         val btnOpenPlaylist: Button = findViewById(R.id.btnOpenPlaylist)
-        val btnRefreshPlaylist: Button = findViewById(R.id.btnRefreshPlaylist)
+        val btnRefreshCatalogs: Button = findViewById(R.id.btnRefreshCatalogs)
         val btnAbout: Button = findViewById(R.id.btnAbout)
 
         btnSelectFolder.setOnClickListener {
@@ -117,6 +117,8 @@ class MainActivity : AppCompatActivity() {
         btnCatalogJapones.setOnClickListener {
             openCatalog("catalogo_japones.json", getString(R.string.catalog_japones_title))
         }
+
+        btnRefreshCatalogs.setOnClickListener { refreshCatalogsAvailability() }
 
         btnAddToPlaylist.setOnClickListener { addSongToPlaylist() }
         editSongNumber.setOnEditorActionListener { _, actionId, _ ->
@@ -139,8 +141,6 @@ class MainActivity : AppCompatActivity() {
         btnOpenPlaylist.setOnClickListener {
             startActivity(Intent(this, PlaylistActivity::class.java))
         }
-
-        btnRefreshPlaylist.setOnClickListener { refreshPlaylistAvailability() }
 
         btnAbout.setOnClickListener {
             startActivity(Intent(this, AboutActivity::class.java))
@@ -313,11 +313,11 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Força uma nova varredura da pasta de vídeos (descartando o índice em
-     * cache) e remove da fila as músicas cujo vídeo não existe mais nela —
-     * útil depois de adicionar ou apagar arquivos na pasta sem trocar de
-     * pasta (o que já invalidaria o cache sozinho).
+     * cache), atualizando a disponibilidade (✓/✗) que os catálogos mostram
+     * sem precisar reabri-los depois de adicionar ou remover arquivos na
+     * pasta.
      */
-    private fun refreshPlaylistAvailability() {
+    private fun refreshCatalogsAvailability() {
         val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
         if (treeUriString == null) {
@@ -329,15 +329,11 @@ class MainActivity : AppCompatActivity() {
         CatalogRepository.invalidateFileIndexCache(this)
         val freshIndex = CatalogRepository.getFileIndex(this, treeUri)
 
-        val removed = PlaylistManager.removeInvalid(freshIndex.keys)
-        updatePlaylistStatus()
-
-        val message = if (removed > 0) {
-            getString(R.string.playlist_refresh_removed, removed)
-        } else {
-            getString(R.string.playlist_refresh_ok)
-        }
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            this,
+            getString(R.string.catalogs_refreshed_toast, freshIndex.size),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     /**

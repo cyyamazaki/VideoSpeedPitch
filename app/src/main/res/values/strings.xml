@@ -64,9 +64,8 @@
     <string name="toast_song_now_playing_prefix">Tocando:</string>
     <string name="idle_now_playing_prefix">Tocando agora:</string>
     <string name="shuffle_icon">🔀</string>
-    <string name="refresh_playlist_button">Atualizar playlist (vídeos disponíveis)</string>
-    <string name="playlist_refresh_removed">%d música(s) removida(s) da fila: vídeo não encontrado na pasta.</string>
-    <string name="playlist_refresh_ok">Todas as músicas da fila têm vídeo disponível na pasta.</string>
+    <string name="refresh_catalogs_button">Atualizar catálogos (vídeos disponíveis)</string>
+    <string name="catalogs_refreshed_toast">Catálogos atualizados: %d vídeo(s) disponível(is) na pasta.</string>
 
     <!-- Erros -->
     <string name="error_no_folder_selected">Selecione primeiro a pasta de vídeos na tela inicial.</string>
@@ -80,7 +79,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
-        <item>Botão na tela inicial para atualizar a playlist quanto à existência dos arquivos: força uma nova varredura da pasta e remove da fila músicas sem vídeo disponível.</item>
+        <item>Botão na tela inicial para atualizar os catálogos quanto à existência dos arquivos de vídeo: força uma nova varredura da pasta, sem precisar reabrir os catálogos para ver a disponibilidade em dia.</item>
         <item>Botão para finalizar a playlist no alto do vídeo (esvazia a fila e desliga o avanço automático), com a mesma discrição dos demais controles ali.</item>
         <item>Botão discreto no alto do vídeo aleatório da tela inicial para trocar de vídeo na hora, sem esperar o atual terminar.</item>
         <item>Adicionar a primeira música da fila (pelo número, na tela inicial) já toca ela na hora, em vez de só enfileirar.</item>
