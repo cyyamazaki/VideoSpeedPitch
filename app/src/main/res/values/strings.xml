@@ -58,6 +58,7 @@
     <string name="play_icon">▶</string>
     <string name="skip_playlist_icon">⏭</string>
     <string name="stop_playlist_icon">⏹</string>
+    <string name="home_icon">🏠</string>
     <string name="playlist_ended_toast">Playlist finalizada.</string>
     <string name="remove">Remover</string>
     <string name="toast_song_added_prefix">Adicionada à playlist:</string>
@@ -79,6 +80,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Botão discreto no alto do vídeo para voltar à tela inicial a qualquer momento, sem esperar o vídeo ou a playlist terminarem.</item>
         <item>Botão na tela inicial para atualizar os catálogos quanto à existência dos arquivos de vídeo: força uma nova varredura da pasta, sem precisar reabrir os catálogos para ver a disponibilidade em dia.</item>
         <item>Botão para finalizar a playlist no alto do vídeo (esvazia a fila e desliga o avanço automático), com a mesma discrição dos demais controles ali.</item>
         <item>Botão discreto no alto do vídeo aleatório da tela inicial para trocar de vídeo na hora, sem esperar o atual terminar.</item>

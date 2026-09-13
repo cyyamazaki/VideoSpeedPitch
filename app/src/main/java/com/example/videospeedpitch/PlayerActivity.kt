@@ -57,8 +57,9 @@ import androidx.media3.ui.PlayerView
  * letra), de forma mais discreta os da próxima música da playlist (quando
  * houver uma pendente na fila) e, com a mesma discrição, botões fora dos
  * controles principais: pausar/retomar, avançar para a próxima música da
- * playlist e, só enquanto o modo playlist estiver ativo, finalizar a
- * playlist (esvazia a fila e desliga o avanço automático).
+ * playlist, finalizar a playlist (só enquanto o modo playlist estiver
+ * ativo; esvazia a fila e desliga o avanço automático) e voltar para a
+ * tela inicial a qualquer momento.
  *
  * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
  * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
@@ -113,6 +114,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var btnTogglePause: Button
     private lateinit var btnSkipPlaylist: Button
     private lateinit var btnEndPlaylist: Button
+    private lateinit var btnGoHome: Button
 
     // Valores atuais (1.00x = normal)
     private var currentSpeed = 1.0f
@@ -162,6 +164,7 @@ class PlayerActivity : AppCompatActivity() {
         btnTogglePause = findViewById(R.id.btnTogglePause)
         btnSkipPlaylist = findViewById(R.id.btnSkipPlaylist)
         btnEndPlaylist = findViewById(R.id.btnEndPlaylist)
+        btnGoHome = findViewById(R.id.btnGoHome)
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
@@ -197,6 +200,7 @@ class PlayerActivity : AppCompatActivity() {
         btnTogglePause.setOnClickListener { togglePause() }
         btnSkipPlaylist.setOnClickListener { skipToNextInPlaylist() }
         btnEndPlaylist.setOnClickListener { endPlaylist() }
+        btnGoHome.setOnClickListener { returnToHome() }
 
         val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
             ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
