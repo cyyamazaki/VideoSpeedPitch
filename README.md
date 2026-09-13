@@ -1,6 +1,6 @@
-# Video Speed Pitch
+# YamazakiOke
 
-App Android para karaokê que:
+App Android de karaokê (nome do projeto/repositório: VideoSpeedPitch) que:
 
 - Mantém **dois catálogos separados** (Karaokê e Japonês), cada um listado por
   completo em memória e **ordenável por cantor ou por música**, com busca (por
@@ -128,12 +128,39 @@ onde parou.
    sincronização).
 4. Rode em um emulador ou dispositivo com **Android 7.0 (API 24)** ou superior.
 
+## Gerando o APK de release (assinado)
+
+O build de debug (`./gradlew assembleDebug`) já é instalável normalmente, mas
+para um APK de release (`./gradlew assembleRelease`) — sem o sufixo "debug"
+e assinado para distribuição/uso definitivo — é preciso uma keystore local:
+
+1. Copie `keystore.properties.example` para `keystore.properties` (raiz do
+   projeto) e gere uma keystore, por exemplo:
+   ```
+   keytool -genkeypair -v -keystore keystore/yamazakioke-release.jks \
+     -alias yamazakioke -keyalg RSA -keysize 2048 -validity 10000
+   ```
+   **Importante:** com o formato PKCS12 (padrão do `keytool` atual), a senha
+   da chave (`-keypass`) precisa ser igual à senha da keystore
+   (`-storepass`) — não dá para usar senhas diferentes.
+2. Preencha `keystore.properties` com o caminho da keystore e as senhas
+   reais.
+3. Rode `./gradlew assembleRelease`. O APK sai em
+   `app/build/outputs/apk/release/app-release.apk`.
+
+`keystore.properties` e a pasta `keystore/` **nunca** são versionados (estão
+no `.gitignore`) — guarde-os em um lugar seguro fora do git, porque **sem a
+mesma keystore não dá para instalar uma atualização por cima de uma versão
+já instalada** (seria preciso desinstalar primeiro). Sem esse arquivo, o
+build de release simplesmente sai sem assinatura (o de debug não é afetado).
+
 ## Estrutura do projeto
 
 ```
 VideoSpeedPitch/
 ├── build.gradle.kts, settings.gradle.kts, gradle.properties
 ├── gradle/wrapper/gradle-wrapper.properties
+├── keystore.properties.example   # modelo; a keystore/senhas reais não são versionadas
 ├── README.md
 └── app/
     ├── build.gradle.kts

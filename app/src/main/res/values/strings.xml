@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Video Speed Pitch</string>
+    <string name="app_name">YamazakiOke</string>
     <string name="reset">Redefinir</string>
 
     <!-- PlayerActivity: velocidade e tom (botões de seleção) -->
@@ -90,6 +90,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>App renomeado para "YamazakiOke"; primeiro build de release assinado (versão 2.0), com o histórico completo até aqui.</item>
         <item>Corrigido: o botão de voltar à tela inicial no player agora respeita "escolher no catálogo" quando ativado (abre o catálogo em vez de simplesmente sair), e escolher uma música do catálogo sem vídeo na pasta já dispara a busca de um karaokê dela no YouTube.</item>
         <item>Botão discreto (➕) no vídeo aleatório da tela inicial para adicionar a música atual à playlist, sem interromper o vídeo que já está tocando.</item>
         <item>Na busca de um catálogo sem resultados, um botão permite buscar um karaokê da música (pelo cantor e nome digitados) diretamente no YouTube.</item>
