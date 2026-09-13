@@ -220,8 +220,11 @@ class PlayerActivity : AppCompatActivity() {
         outState.putBoolean(STATE_PLAYLIST_MODE, playlistMode)
         outState.putFloat(STATE_SPEED, currentSpeed)
         outState.putFloat(STATE_PITCH, currentPitch)
-        outState.putLong(STATE_POSITION_MS, player?.currentPosition ?: 0L)
-        outState.putBoolean(STATE_PLAY_WHEN_READY, player?.playWhenReady ?: true)
+        // player pode já ter sido liberado (onStop já rodou antes deste
+        // callback em algumas versões do Android) — nesse caso, pendingSeek*
+        // já guarda a última posição/estado capturados em onStop().
+        outState.putLong(STATE_POSITION_MS, player?.currentPosition ?: pendingSeekPositionMs)
+        outState.putBoolean(STATE_PLAY_WHEN_READY, player?.playWhenReady ?: pendingPlayWhenReady)
         currentSong?.let { song ->
             outState.putString(STATE_SONG_ARTISTA, song.artista)
             outState.putString(STATE_SONG_MUSICA, song.musica)
@@ -639,6 +642,10 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        // pendingSeekPositionMs/pendingPlayWhenReady já trazem a posição e o
+        // estado (tocando/pausado) salvos em onStop, então playVideo() retoma
+        // exatamente de onde o app foi deixado, mesmo sem o Android ter
+        // recriado a Activity.
         if (player == null && currentUri != null) {
             playVideo(currentUri!!)
         }
@@ -646,6 +653,12 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        // Salva onde o vídeo parou antes de liberar o player, para retomar
+        // do mesmo ponto quando o app voltar ao primeiro plano (sem precisar
+        // que a Activity seja recriada) — o app fica em segundo plano, não
+        // fechado, mas o ExoPlayer não pode continuar rodando sem a tela.
+        pendingSeekPositionMs = player?.currentPosition ?: 0L
+        pendingPlayWhenReady = player?.playWhenReady ?: true
         releasePlayer()
     }
 }
