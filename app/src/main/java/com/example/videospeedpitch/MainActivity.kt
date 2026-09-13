@@ -103,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         val btnCatalogJapones: Button = findViewById(R.id.btnCatalogJapones)
         val btnAddToPlaylist: Button = findViewById(R.id.btnAddToPlaylist)
         val btnOpenPlaylist: Button = findViewById(R.id.btnOpenPlaylist)
+        val btnRefreshPlaylist: Button = findViewById(R.id.btnRefreshPlaylist)
         val btnAbout: Button = findViewById(R.id.btnAbout)
 
         btnSelectFolder.setOnClickListener {
@@ -138,6 +139,8 @@ class MainActivity : AppCompatActivity() {
         btnOpenPlaylist.setOnClickListener {
             startActivity(Intent(this, PlaylistActivity::class.java))
         }
+
+        btnRefreshPlaylist.setOnClickListener { refreshPlaylistAvailability() }
 
         btnAbout.setOnClickListener {
             startActivity(Intent(this, AboutActivity::class.java))
@@ -306,6 +309,35 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePlaylistStatus() {
         tvPlaylistStatus.text = getString(R.string.playlist_status, PlaylistManager.size())
+    }
+
+    /**
+     * Força uma nova varredura da pasta de vídeos (descartando o índice em
+     * cache) e remove da fila as músicas cujo vídeo não existe mais nela —
+     * útil depois de adicionar ou apagar arquivos na pasta sem trocar de
+     * pasta (o que já invalidaria o cache sozinho).
+     */
+    private fun refreshPlaylistAvailability() {
+        val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
+            .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
+        if (treeUriString == null) {
+            Toast.makeText(this, R.string.error_no_folder_selected, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val treeUri = Uri.parse(treeUriString)
+        CatalogRepository.invalidateFileIndexCache(this)
+        val freshIndex = CatalogRepository.getFileIndex(this, treeUri)
+
+        val removed = PlaylistManager.removeInvalid(freshIndex.keys)
+        updatePlaylistStatus()
+
+        val message = if (removed > 0) {
+            getString(R.string.playlist_refresh_removed, removed)
+        } else {
+            getString(R.string.playlist_refresh_ok)
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     /**

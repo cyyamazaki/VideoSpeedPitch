@@ -55,9 +55,10 @@ import androidx.media3.ui.PlayerView
  * No alto do vídeo, independente do painel de controles, um overlay mostra
  * sempre os dados da música atual (cantor, música, código e início da
  * letra), de forma mais discreta os da próxima música da playlist (quando
- * houver uma pendente na fila) e, com a mesma discrição, dois botões fora
- * dos controles principais: pausar/retomar e avançar para a próxima música
- * da playlist.
+ * houver uma pendente na fila) e, com a mesma discrição, botões fora dos
+ * controles principais: pausar/retomar, avançar para a próxima música da
+ * playlist e, só enquanto o modo playlist estiver ativo, finalizar a
+ * playlist (esvazia a fila e desliga o avanço automático).
  *
  * Ao girar a tela, a Activity é recriada normalmente pelo Android (não
  * usamos o truque de `configChanges` para suprimir isso); [onSaveInstanceState]
@@ -111,6 +112,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var tvNextSongInfo: TextView
     private lateinit var btnTogglePause: Button
     private lateinit var btnSkipPlaylist: Button
+    private lateinit var btnEndPlaylist: Button
 
     // Valores atuais (1.00x = normal)
     private var currentSpeed = 1.0f
@@ -159,6 +161,7 @@ class PlayerActivity : AppCompatActivity() {
         tvNextSongInfo = findViewById(R.id.tvNextSongInfo)
         btnTogglePause = findViewById(R.id.btnTogglePause)
         btnSkipPlaylist = findViewById(R.id.btnSkipPlaylist)
+        btnEndPlaylist = findViewById(R.id.btnEndPlaylist)
         val btnReset: Button = findViewById(R.id.btnReset)
         val btnAddToPlaylist: Button = findViewById(R.id.btnPlayerAddToPlaylist)
 
@@ -167,6 +170,7 @@ class PlayerActivity : AppCompatActivity() {
             ?: getString(R.string.app_name)
         playlistMode = savedInstanceState?.getBoolean(STATE_PLAYLIST_MODE)
             ?: intent.getBooleanExtra(EXTRA_PLAYLIST_MODE, false)
+        updatePlaylistModeUi()
         currentSpeed = savedInstanceState?.getFloat(STATE_SPEED) ?: 1.0f
         currentPitch = savedInstanceState?.getFloat(STATE_PITCH) ?: 1.0f
         pendingSeekPositionMs = savedInstanceState?.getLong(STATE_POSITION_MS) ?: 0L
@@ -192,6 +196,7 @@ class PlayerActivity : AppCompatActivity() {
 
         btnTogglePause.setOnClickListener { togglePause() }
         btnSkipPlaylist.setOnClickListener { skipToNextInPlaylist() }
+        btnEndPlaylist.setOnClickListener { endPlaylist() }
 
         val uri = savedInstanceState?.getParcelable<Uri>(STATE_VIDEO_URI)
             ?: intent.getParcelableExtra<Uri>(EXTRA_VIDEO_URI)
@@ -290,7 +295,26 @@ class PlayerActivity : AppCompatActivity() {
     private fun skipToNextInPlaylist() {
         if (PlaylistManager.isEmpty()) return
         playlistMode = true
+        updatePlaylistModeUi()
         playNextFromPlaylist()
+    }
+
+    /** Mostra o botão de finalizar playlist só enquanto o modo playlist estiver ativo. */
+    private fun updatePlaylistModeUi() {
+        btnEndPlaylist.visibility = if (playlistMode) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * Finaliza a playlist: esvazia a fila e desativa o modo playlist, para
+     * que o vídeo atual não avance mais sozinho ao terminar (volta a
+     * simplesmente retornar à tela inicial, como um vídeo avulso).
+     */
+    private fun endPlaylist() {
+        PlaylistManager.clear()
+        playlistMode = false
+        updatePlaylistModeUi()
+        updateNextSongOverlay()
+        Toast.makeText(this, R.string.playlist_ended_toast, Toast.LENGTH_SHORT).show()
     }
 
     private fun speedToRadioId(speed: Float) = when (speed) {

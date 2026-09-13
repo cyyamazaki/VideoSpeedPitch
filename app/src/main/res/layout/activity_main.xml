@@ -139,6 +139,14 @@
                 android:layout_marginTop="6dp"
                 android:text="@string/view_playlist" />
 
+            <Button
+                android:id="@+id/btnRefreshPlaylist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/refresh_playlist_button"
+                style="?attr/borderlessButtonStyle" />
+
             <!-- Passo 2: catálogos (mantidos sempre separados) -->
             <TextView
                 android:layout_width="match_parent"

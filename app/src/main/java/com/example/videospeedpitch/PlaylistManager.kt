@@ -28,4 +28,11 @@ object PlaylistManager {
     fun size(): Int = queue.size
 
     fun clear() = queue.clear()
+
+    /** Remove da fila músicas cujo código não está em [validCodes]; retorna quantas foram removidas. */
+    fun removeInvalid(validCodes: Set<String>): Int {
+        val invalid = queue.filter { it.codigo !in validCodes }
+        queue.removeAll(invalid)
+        return invalid.size
+    }
 }
