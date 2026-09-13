@@ -1,5 +1,6 @@
 package com.example.videospeedpitch
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -38,7 +39,8 @@ import androidx.media3.ui.PlayerView
  * modo, também avisa com um toast 5 segundos antes do fim de cada vídeo
  * qual será a próxima música. Independente do modo, é possível digitar o
  * número de uma música aqui mesmo para adicioná-la à fila sem sair do
- * vídeo atual.
+ * vídeo atual. Ao terminar o vídeo — ou, em modo playlist, ao esvaziar a
+ * fila — a tela inicial é reaberta automaticamente.
  *
  * O painel de controles (velocidade, pitch e número da música) fica oculto
  * por padrão, para o vídeo ocupar o máximo de espaço possível, e só
@@ -300,7 +302,7 @@ class PlayerActivity : AppCompatActivity() {
         try {
             contentResolver.takePersistableUriPermission(
                 uri,
-                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
         } catch (e: SecurityException) {
             // Alguns provedores de conteúdo (ex.: DocumentFile de árvore) não
@@ -321,10 +323,16 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED && playlistMode) {
+                if (playbackState == Player.STATE_ENDED) {
                     // Adiado para fora do callback do próprio player, evitando
                     // liberar/recriar o ExoPlayer durante seu próprio evento.
-                    playerView.post { playNextFromPlaylist() }
+                    playerView.post {
+                        if (playlistMode) {
+                            playNextFromPlaylist()
+                        } else {
+                            returnToHome()
+                        }
+                    }
                 }
             }
         })
@@ -346,7 +354,10 @@ class PlayerActivity : AppCompatActivity() {
     private fun playNextFromPlaylist() {
         val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null)
-        if (treeUriString == null) return
+        if (treeUriString == null) {
+            returnToHome()
+            return
+        }
 
         val treeUri = Uri.parse(treeUriString)
         val index = fileIndex ?: CatalogRepository.buildFileIndex(this, treeUri).also { fileIndex = it }
@@ -366,12 +377,21 @@ class PlayerActivity : AppCompatActivity() {
 
         if (nextSong == null || videoUri == null) {
             Toast.makeText(this, R.string.playlist_finished, Toast.LENGTH_SHORT).show()
+            returnToHome()
             return
         }
 
         currentUri = videoUri
         title = "${nextSong.artista} - ${nextSong.musica}"
         playVideo(videoUri)
+    }
+
+    /** Fecha o player e volta para a tela inicial, limpando o restante da pilha. */
+    private fun returnToHome() {
+        val homeIntent = Intent(this, MainActivity::class.java)
+        homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(homeIntent)
+        finish()
     }
 
     private fun releasePlayer() {
