@@ -43,11 +43,12 @@ import androidx.media3.ui.PlayerView
  * dar lugar ao vídeo, que ocupa a maior parte da tela, mas continua
  * acessível (rolável) logo abaixo — nenhuma interação nesta tela
  * interrompe o vídeo. Ele só é escondido ao navegar para uma tela de
- * escolha em lista (catálogo ou playlist), voltando a tocar (outro vídeo
- * aleatório) assim que a tela inicial volta a ficar em primeiro plano.
- * Botões discretos no alto do vídeo permitem trocar para outro aleatório a
- * qualquer momento (sem esperar o atual terminar) e buscar a música atual
- * no YouTube (ver [YouTubeSearchHelper]).
+ * escolha em lista (catálogo ou playlist) ou ao sair do app sem fechá-lo
+ * (ex.: botão Início); ao voltar, retoma o **mesmo** vídeo exatamente de
+ * onde parou (posição e se estava tocando/pausado), em vez de sortear um
+ * novo. Botões discretos no alto do vídeo permitem trocar para outro
+ * aleatório a qualquer momento (sem esperar o atual terminar) e buscar a
+ * música atual no YouTube (ver [YouTubeSearchHelper]).
  */
 class MainActivity : AppCompatActivity() {
 
@@ -63,6 +64,14 @@ class MainActivity : AppCompatActivity() {
     private var idlePlayer: ExoPlayer? = null
     private var idleFileIndex: Map<String, Uri> = emptyMap()
     private var currentIdleSong: Song? = null
+
+    // Guardam qual vídeo estava tocando e de onde, para retomar exatamente
+    // do mesmo ponto ao voltar a esta tela (troca de tela, ou sair do app
+    // sem fechá-lo) em vez de sempre sortear um vídeo novo do zero.
+    private var lastIdleCodigo: String? = null
+    private var lastIdleUri: Uri? = null
+    private var pendingIdleSeekPositionMs = 0L
+    private var pendingIdlePlayWhenReady = true
 
     private val pickFolderLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -171,7 +180,12 @@ class MainActivity : AppCompatActivity() {
         editSongNumber.setSelection(editSongNumber.text?.length ?: 0)
     }
 
-    /** Começa a tocar, embutido nesta tela e sem espera, um vídeo aleatório da pasta selecionada. */
+    /**
+     * Começa a tocar, embutido nesta tela e sem espera, um vídeo da pasta
+     * selecionada. Se havia um vídeo tocando quando a tela saiu de primeiro
+     * plano (ver [stopIdlePlayback]), retoma exatamente ele, na mesma
+     * posição e estado (tocando/pausado); senão, sorteia um vídeo novo.
+     */
     private fun playRandomIdleVideo() {
         val treeUriString = getSharedPreferences(Prefs.NAME, MODE_PRIVATE)
             .getString(Prefs.KEY_VIDEOS_TREE_URI, null) ?: return
@@ -194,17 +208,35 @@ class MainActivity : AppCompatActivity() {
         })
         idlePlayerView.player = exoPlayer
         idlePlayer = exoPlayer
-        playNextIdleVideo()
+
+        val resumeCodigo = lastIdleCodigo
+        val resumeUri = lastIdleUri
+        if (resumeCodigo != null && resumeUri != null && idleFileIndex[resumeCodigo] == resumeUri) {
+            playIdleVideo(resumeCodigo, resumeUri, pendingIdleSeekPositionMs, pendingIdlePlayWhenReady)
+        } else {
+            playNextIdleVideo()
+        }
+        pendingIdleSeekPositionMs = 0L
+        pendingIdlePlayWhenReady = true
     }
 
+    /** Sorteia e toca um vídeo novo da pasta, do início — usado ao terminar um vídeo ou pelo botão de trocar. */
     private fun playNextIdleVideo() {
-        val exoPlayer = idlePlayer ?: return
         if (idleFileIndex.isEmpty()) return
-
         val (codigo, uri) = idleFileIndex.entries.random()
+        playIdleVideo(codigo, uri, seekPositionMs = 0L, playWhenReady = true)
+    }
+
+    private fun playIdleVideo(codigo: String, uri: Uri, seekPositionMs: Long, playWhenReady: Boolean) {
+        val exoPlayer = idlePlayer ?: return
         exoPlayer.setMediaItem(MediaItem.fromUri(uri))
+        if (seekPositionMs > 0L) {
+            exoPlayer.seekTo(seekPositionMs)
+        }
         exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        exoPlayer.playWhenReady = playWhenReady
+        lastIdleCodigo = codigo
+        lastIdleUri = uri
         updateIdleSongInfo(codigo)
     }
 
@@ -230,10 +262,17 @@ class MainActivity : AppCompatActivity() {
         YouTubeSearchHelper.searchAndOpen(this, song)
     }
 
-    /** Encerra o vídeo em segundo plano (se houver) e devolve a área de controles ao tamanho normal. */
+    /**
+     * Encerra o vídeo em segundo plano (se houver) e devolve a área de
+     * controles ao tamanho normal — mas antes salva a posição e se estava
+     * tocando/pausado, para retomar exatamente dali na próxima vez que esta
+     * tela voltar a ficar em primeiro plano (ver [playRandomIdleVideo]).
+     */
     private fun stopIdlePlayback() {
-        if (idlePlayer == null) return
-        idlePlayer?.release()
+        val exoPlayer = idlePlayer ?: return
+        pendingIdleSeekPositionMs = exoPlayer.currentPosition
+        pendingIdlePlayWhenReady = exoPlayer.playWhenReady
+        exoPlayer.release()
         idlePlayer = null
         idlePlayerView.player = null
         idleVideoContainer.visibility = View.GONE

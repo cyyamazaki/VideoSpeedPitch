@@ -19,7 +19,9 @@ App Android para karaokê que:
   de 5%), por botões de seleção — sem os controles nativos do ExoPlayer, para
   não escurecer o vídeo nem atrapalhar a leitura de legendas embutidas.
 - Na tela inicial, toca continuamente um **vídeo aleatório embutido** da pasta
-  selecionada enquanto você não abre um catálogo ou a playlist.
+  selecionada enquanto você não abre um catálogo ou a playlist — e retoma
+  exatamente de onde parou (posição e se estava tocando/pausado) ao voltar de
+  outra tela ou de sair do app sem fechá-lo, em vez de sortear um vídeo novo.
 - Um botão discreto (🔎), tanto no player quanto no vídeo aleatório da tela
   inicial, **busca a música atual no YouTube** e abre o primeiro resultado
   encontrado, ou avisa por toast se não achar. É a única funcionalidade do
