@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.RadioGroup
@@ -12,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.roundToInt
 
 /**
  * Tela de UM catálogo (karaokê OU japonês — nunca os dois ao mesmo tempo).
@@ -25,6 +28,11 @@ import androidx.recyclerview.widget.RecyclerView
  * (em vez de só descobrir isso ao tocar no item). Ao escolher um item, se
  * a pasta de vídeos já tiver sido selecionada, o app localiza o arquivo
  * cujo nome é o código da música e abre o player.
+ *
+ * Uma barra de rolagem rápida na borda direita permite arrastar o dedo
+ * para pular a lista proporcionalmente (útil em catálogos com milhares de
+ * músicas), mostrando uma bolha com a letra inicial (do cantor ou da
+ * música, conforme a ordenação escolhida) da posição atual.
  */
 class CatalogActivity : AppCompatActivity() {
 
@@ -39,6 +47,10 @@ class CatalogActivity : AppCompatActivity() {
     private lateinit var adapter: SongAdapter
     private lateinit var tvEmptyState: TextView
     private lateinit var editSearch: EditText
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var fastScrollThumb: View
+    private lateinit var tvFastScrollLetter: TextView
 
     private var lastQuery = ""
     private var sortField = SortField.CANTOR
@@ -55,14 +67,20 @@ class CatalogActivity : AppCompatActivity() {
 
         allSongs = CatalogRepository.loadCatalog(this, assetName)
 
-        val recyclerView: RecyclerView = findViewById(R.id.recyclerViewSongs)
+        recyclerView = findViewById(R.id.recyclerViewSongs)
         editSearch = findViewById(R.id.editSearch)
         tvEmptyState = findViewById(R.id.tvEmptyState)
         val radioGroupSort: RadioGroup = findViewById(R.id.radioGroupSort)
+        val fastScrollTrack: View = findViewById(R.id.fastScrollTrack)
+        fastScrollThumb = findViewById(R.id.fastScrollThumb)
+        tvFastScrollLetter = findViewById(R.id.tvFastScrollLetter)
 
         adapter = SongAdapter { song -> onSongSelected(song) }
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
+
+        setupFastScroll(fastScrollTrack)
 
         // A lista só é refiltrada quando o usuário confirma a busca
         // (Enter/ação de busca do teclado), não a cada tecla digitada.
@@ -121,6 +139,51 @@ class CatalogActivity : AppCompatActivity() {
         val index = CatalogRepository.getFileIndex(this, treeUri)
         fileIndex = index
         adapter.setAvailableCodes(index.keys)
+    }
+
+    /**
+     * Arrastar em qualquer ponto do trilho invisível na borda direita pula a
+     * lista para a posição proporcional a essa altura, mostrando uma bolha
+     * com a letra inicial da música/cantor daquela posição enquanto arrasta.
+     */
+    private fun setupFastScroll(fastScrollTrack: View) {
+        fastScrollTrack.setOnTouchListener { view, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    updateFastScroll(event.y, view.height)
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    tvFastScrollLetter.visibility = View.GONE
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun updateFastScroll(touchY: Float, trackHeight: Int) {
+        val itemCount = adapter.itemCount
+        if (itemCount == 0 || trackHeight <= 0) return
+
+        val fraction = (touchY / trackHeight).coerceIn(0f, 1f)
+        val targetIndex = (fraction * (itemCount - 1)).roundToInt()
+        layoutManager.scrollToPositionWithOffset(targetIndex, 0)
+
+        val thumbRange = (trackHeight - fastScrollThumb.height).coerceAtLeast(0)
+        fastScrollThumb.translationY = fraction * thumbRange
+
+        val song = adapter.songAt(targetIndex)
+        val letterSource = if (sortField == SortField.MUSICA) song.musica else song.artista
+        tvFastScrollLetter.text = CatalogRepository.normalize(letterSource)
+            .firstOrNull { it.isLetterOrDigit() }
+            ?.uppercaseChar()
+            ?.toString()
+            ?: "#"
+
+        val bubbleRange = (trackHeight - tvFastScrollLetter.height).coerceAtLeast(0)
+        tvFastScrollLetter.translationY = fraction * bubbleRange
+        tvFastScrollLetter.visibility = View.VISIBLE
     }
 
     private fun filter(rawQuery: String) {

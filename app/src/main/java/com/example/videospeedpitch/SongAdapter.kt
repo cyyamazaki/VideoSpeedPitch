@@ -38,6 +38,9 @@ class SongAdapter(
 
     override fun getItemCount(): Int = items.size
 
+    /** Usado pela barra de rolagem rápida para saber a música em cada posição. */
+    fun songAt(position: Int): Song = items[position]
+
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMusica: TextView = itemView.findViewById(R.id.tvMusica)
         private val tvArtista: TextView = itemView.findViewById(R.id.tvArtista)

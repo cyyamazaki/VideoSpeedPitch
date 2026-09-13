@@ -80,6 +80,7 @@
     <string name="about_history_title">Histórico de implementações</string>
 
     <string-array name="about_history_entries">
+        <item>Barra de rolagem rápida na lista dos catálogos: arraste na borda direita para pular direto para qualquer ponto da lista, com uma bolha mostrando a letra inicial da posição atual.</item>
         <item>Ao sair do app sem fechá-lo (ex.: botão Início) durante um vídeo, a posição e se estava pausado ou tocando são salvos e retomados exatamente de onde parou ao voltar.</item>
         <item>Botão discreto no alto do vídeo para voltar à tela inicial a qualquer momento, sem esperar o vídeo ou a playlist terminarem.</item>
         <item>Botão na tela inicial para atualizar os catálogos quanto à existência dos arquivos de vídeo: força uma nova varredura da pasta, sem precisar reabrir os catálogos para ver a disponibilidade em dia.</item>

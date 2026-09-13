@@ -35,7 +35,10 @@ música, código, o início da letra (quando disponível) e se o vídeo já est�
 disponível na pasta selecionada. Digitar algo no campo de busca e confirmar
 (Enter ou "Buscar") filtra essa lista pelo texto — a lista só é recalculada
 nessa confirmação, não a cada tecla digitada, para não travar em catálogos
-grandes.
+grandes. Para navegar rápido em listas com milhares de músicas, arraste o
+dedo na borda direita da lista: ela pula proporcionalmente para aquele ponto,
+mostrando uma bolha com a letra inicial (do cantor ou da música, conforme a
+ordenação) da posição atual.
 
 Quando você toca em uma música da lista, o app:
 

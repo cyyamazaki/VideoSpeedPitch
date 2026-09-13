@@ -63,11 +63,49 @@
         android:textSize="14sp"
         android:gravity="center" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewSongs"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false" />
+        android:layout_marginTop="8dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewSongs"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingEnd="28dp" />
+
+        <!-- Trilho invisível: arrastar em qualquer ponto da faixa da direita
+             pula a lista para a posição proporcional, para navegar rápido em
+             catálogos com milhares de músicas. -->
+        <View
+            android:id="@+id/fastScrollTrack"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end" />
+
+        <View
+            android:id="@+id/fastScrollThumb"
+            android:layout_width="6dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end|top"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/fast_scroll_thumb"
+            android:alpha="0.85" />
+
+        <TextView
+            android:id="@+id/tvFastScrollLetter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end|top"
+            android:layout_marginEnd="40dp"
+            android:background="@drawable/fast_scroll_bubble"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </LinearLayout>
