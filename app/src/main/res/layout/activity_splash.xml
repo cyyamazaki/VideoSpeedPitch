@@ -4,10 +4,13 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
+    <!-- fitCenter em vez de centerCrop: mostra a ilustração inteira, sem
+         cortar nada, ajustada à tela (com faixas pretas nas bordas quando a
+         proporção da tela for diferente da imagem — combinam com o fundo). -->
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         android:contentDescription="@null"
         android:src="@drawable/splash_singer" />
 
