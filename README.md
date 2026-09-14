@@ -3,6 +3,7 @@
 App Android de karaokê (nome do projeto/repositório: VideoSpeedPitch). Ao
 abrir, mostra uma tela de splash com o nome do app, a versão e o mês/ano de
 lançamento sobre uma ilustração, antes de ir para a tela inicial de verdade.
+O ícone do app (launcher) é um microfone branco sobre o azul do tema.
 
 O app:
 
@@ -199,6 +200,8 @@ VideoSpeedPitch/
             │   ├── activity_player.xml     # player
             │   └── activity_about.xml      # tela "Sobre"
             ├── drawable-nodpi/splash_singer.jpg   # ilustração de fundo do splash (ver Créditos)
+            ├── mipmap-anydpi-v26/ic_launcher.xml  # ícone adaptativo (API 26+): fundo + microfone
+            ├── mipmap-{m,h,x,xx,xxx}hdpi/         # ic_launcher.png (legado) e ic_launcher_foreground.png
             └── values/{strings.xml, colors.xml, themes.xml}
 ```
 
@@ -230,3 +233,6 @@ VideoSpeedPitch/
 Ilustração de fundo da tela de abertura
 (`app/src/main/res/drawable-nodpi/splash_singer.jpg`) fornecida pelo autor
 do projeto.
+
+Ícone do app (microfone) desenhado proceduralmente para o projeto — sem
+assets externos.
